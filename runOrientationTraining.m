@@ -3,7 +3,8 @@ function runOrientationTraining()
 %
 % opens processed training data and runs training. 
 %
-opencvdataFileName = 'opencvdata.mat';
+
+outputfile = 'orientdata.mat';
 
 % when finding body connected components, we close holes
 fitparams.se_close = strel('disk',15,0);
@@ -22,6 +23,7 @@ fitparams.classifyparams.method = 'GentleBoost';
 fitparams.classifyparams.nlearn = 100;
 fitparams.classifyparams.learners = 'Tree';
 
+opencvdataFileName = 'opencvdata.mat';
 opencvfile = load(opencvdataFileName);
 opencvdata = opencvfile.opencvdata;
 
@@ -58,7 +60,7 @@ for i = 1:numel(gtposdata),
 end
 
 
-save('orientation_classifier.mat','imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
+save(outputfile,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
 
 % look at area thresholds
 fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflies]).dd_bodyArea]));
