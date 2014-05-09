@@ -1,5 +1,5 @@
-function trainOrientClassifier
-% trainOrentClassifier
+function processTrainingData 
+% processTrainingData 
 %
 % basic script for training the orientation clasifier
 
@@ -36,7 +36,7 @@ else
 end
 
 opencvData = getOpencvData(trainDataBaseDir);
-save(outputFileName, opencvData);
+save(outputFileName, 'opencvData');
 
 
 %[fitparams,doflip,Xor,yor,imis] = LabelTrainOrientationClassifier( [], [], ...
@@ -81,6 +81,7 @@ for dirNum = 1:1%numel(trainDataDirs)
     for fileNum = 1:numel(datFiles)
 
         fileName = datFiles(fileNum).name;
+        fprintf('  %s\n',fileName);
         
         isPosData = false;
         posDataInfo = [];
