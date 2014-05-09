@@ -10,10 +10,11 @@ classifyparams.nlearn = 100;
 classifyparams.learners = 'Tree';
 
 % Load orientation classifier data and unpack
-orientdataFilename = 'orientdata.mat'
+orientdataFileName = 'orientdata.mat'
 orientdata = load(orientdataFileName);
+orientdata
 gtposdata = orientdata.gtposdata;
-imfile = orientdata.imfile;
+imfiles = orientdata.imfiles;
 sex = orientdata.sex;
 opencvdata = orientdata.opencvdata;
 

@@ -8,12 +8,6 @@ trainDataBaseDir = 'training_data';
 outputFileName = 'opencvdata.mat';
 
 
-
-% Kristin's libraries
-addpath D:/Documents/code/JAABA/misc;
-addpath D:/Documents/code/JAABA/filehandling;
-%addpath D:/Documents/code/piotr_toolbox_V3.02/channels;
-
 opencvdata = getOpencvData(trainDataBaseDir);
 save(outputFileName, 'opencvdata');
 
@@ -158,7 +152,14 @@ function frameToGenderMap = createFrameToGenderMap(labeledDebugData)
 frameToGenderMap = containers.Map(0.1,'a').remove(0.1); 
 for i = 1:numel(labeledDebugData)
     frameNumber = 1000*labeledDebugData(i).frame + labeledDebugData(i).count + 1;
-    frameToGenderMap(frameNumber) = labeledDebugData.manuallabel;
+    label = labeledDebugData(i).manuallabel;
+    if isa(label,'double')
+        label = 'U';
+    else
+        label = upper(label);
+    end
+    disp(label);
+    frameToGenderMap(frameNumber) = upper(label);
 end
 
 
