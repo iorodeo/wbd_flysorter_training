@@ -1,6 +1,9 @@
 function [yfitcv,fraccorrect] = CrossValidationOverMovies(X,y,featurenames,imfiles,nlearn,...
   varargin)
 
+disp(size(X))
+disp(size(y))
+
 [movienames] = myparse(varargin,'movienames',{});
 
 if isempty(movienames),
@@ -23,6 +26,11 @@ parfor i = 1:numel(uniquepaths),
   % indices into X, y
   idxtestcurr = movieidx==i;
   idxtraincurr = ~idxtestcurr;
+
+  % -----------------------------------------------------------------------
+  % Problem .... idxtraincurr is all zeros, what should be happending here.
+  % -----------------------------------------------------------------------
+
   classifier_cv = myFitEnsemble(X(idxtraincurr,:),y(idxtraincurr),...
     featurenames,nlearn);
   [lcurr,ycurr] = FastBinaryPredict(classifier_cv,X(idxtestcurr,:));

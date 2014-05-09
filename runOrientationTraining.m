@@ -3,7 +3,7 @@ function runOrientationTraining()
 %
 % opens processed training data and runs training. 
 %
-opencvdataFileName = 'opencv_data.mat';
+opencvdataFileName = 'opencvdata.mat';
 
 % when finding body connected components, we close holes
 fitparams.se_close = strel('disk',15,0);
@@ -58,23 +58,23 @@ for i = 1:numel(gtposdata),
 end
 
 
-save('orientation_classifer.mat','imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
+save('orientation_classifier.mat','imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
 
 % look at area thresholds
 fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflies]).dd_bodyArea]));
 
 % cross-validation
+% NOT WORKING.
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
 if strcmpi(res,'yes'),
   [yfitcv_or,fraccorrect_or] = CrossValidationOverMovies(Xor,yor,fitparams.featurenames,...
     imfiles(imis),fitparams.classifyparams.nlearn);
+    save('-append','orientation_classifier.mat','yfitc_or','fraccorrect_or');
 end
-
-save('-append','orientation_classifier.mat','yfitc_or','fraccorrect_or');
 
 % make an image of all the aligned flies
 res = questdlg('Do you want to make an image of all the aligned flies?');
 if strcmpi(res,'yes'),
   alignedflyim = ShowAlignedFliesFile(opencvdata,gtposdata);
-  imwrite(repmat(alignedflyim,[1,1,3]),'aligned_flies.png,'png');
+  imwrite(repmat(alignedflyim,[1,1,3]),'aligned_flies.png', 'png');
 end

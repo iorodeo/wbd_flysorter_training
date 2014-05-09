@@ -4,21 +4,15 @@ function processTrainingData
 % organizes data found int base training data directory. Saves this information in 
 % to output file.
 
-trainDataBaseDir = '.\flysorter_training';
+trainDataBaseDir = 'training_data';
 outputFileName = 'opencvdata.mat';
 
 
 
 % Kristin's libraries
-if ispc,
-    addpath ../JAABA/misc;
-    addpath ../JAABA/filehandling;
-    addpath ../piotr_toolbox_V3.0/channels;
-else
-    addpath ../JCtrax/misc;
-    addpath ../JCtrax/filehandling;
-    addpath ../piotr_toolbox_V3.0/channels;
-end
+addpath D:/Documents/code/JAABA/misc;
+addpath D:/Documents/code/JAABA/filehandling;
+%addpath D:/Documents/code/piotr_toolbox_V3.02/channels;
 
 opencvdata = getOpencvData(trainDataBaseDir);
 save(outputFileName, 'opencvdata');

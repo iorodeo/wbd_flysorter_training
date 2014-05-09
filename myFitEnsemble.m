@@ -9,6 +9,7 @@
 
 function [classifier,ens,labelfit,yfit] = myFitEnsemble(X,y,featurenames,nlearn)
 
+
 % use matlab's boosting code
 ens = fitensemble(X,y,'GentleBoost',nlearn,...
   'Tree','PredictorNames',featurenames,'prior','uniform');

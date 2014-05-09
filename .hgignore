@@ -1,4 +1,6 @@
 syntax: glob
 *~
+*.png
 opencvdata.mat
-flysorter_training
+orientation_classifier.mat
+training_data
