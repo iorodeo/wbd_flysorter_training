@@ -4,6 +4,7 @@ function trainOrientClassifier
 % basic script for training the orientation clasifier
 
 trainDataBaseDir = '.\flysorter_training';
+outputFileName = 'opencv_data.mat';
 
 % when finding body connected components, we close holes
 fitparams.se_close = strel('disk',15,0);
@@ -35,8 +36,7 @@ else
 end
 
 opencvData = getOpencvData(trainDataBaseDir);
-
-opencvData(1)
+save(outputFileName, opencvData);
 
 
 %[fitparams,doflip,Xor,yor,imis] = LabelTrainOrientationClassifier( [], [], ...
