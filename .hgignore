@@ -1,4 +1,4 @@
 syntax: glob
 *~
-opencv_data.mat
+opencvdata.mat
 flysorter_training

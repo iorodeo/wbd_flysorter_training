@@ -1,27 +1,12 @@
 function processTrainingData 
 % processTrainingData 
 %
-% basic script for training the orientation clasifier
+% organizes data found int base training data directory. Saves this information in 
+% to output file.
 
 trainDataBaseDir = '.\flysorter_training';
-outputFileName = 'opencv_data.mat';
+outputFileName = 'opencvdata.mat';
 
-% when finding body connected components, we close holes
-fitparams.se_close = strel('disk',15,0);
-
-% minimum size of a fly body
-fitparams.area_open = 3400;
-fitparams.mina = 58.8333;
-
-% max size of a fly body
-fitparams.max_body_area = 16600;
-fitparams.max_body_a = 140;
-
-fitparams.classifyparams = struct;
-fitparams.classifyparams.padborder = 15;
-fitparams.classifyparams.method = 'GentleBoost';
-fitparams.classifyparams.nlearn = 100;
-fitparams.classifyparams.learners = 'Tree';
 
 
 % Kristin's libraries
@@ -35,19 +20,14 @@ else
     addpath ../piotr_toolbox_V3.0/channels;
 end
 
-opencvData = getOpencvData(trainDataBaseDir);
-save(outputFileName, 'opencvData');
-
-
-%[fitparams,doflip,Xor,yor,imis] = LabelTrainOrientationClassifier( [], [], ...
-%    fitparams,'fromfile',true,'datafiles',opencvData); 
-
+opencvdata = getOpencvData(trainDataBaseDir);
+save(outputFileName, 'opencvdata');
 
 
 % Utility functions
 % ---------------------------------------------------------------------------------------
 
-function opencvData = getOpencvData(trainDataBaseDir)
+function opencvdata = getOpencvData(trainDataBaseDir)
 % getOpencvData:
 %
 % Returns structure of opencv data given the base directory for the training data.
@@ -56,7 +36,7 @@ function opencvData = getOpencvData(trainDataBaseDir)
 % Loop over training data directories
 trainDataDirs = getTrainDataDirs(trainDataBaseDir);
 
-opencvData = [];
+opencvdata = [];
 offk= 0;
 
 for dirNum = 1:1%numel(trainDataDirs)
@@ -122,7 +102,7 @@ for dirNum = 1:1%numel(trainDataDirs)
             end
 
         else
-            dataCurr = opencvData(offk+k);
+            dataCurr = opencvdata(offk+k);
         end
         
         if isPosData,
@@ -149,7 +129,7 @@ for dirNum = 1:1%numel(trainDataDirs)
             end
         end
         
-        opencvData = structarrayset(opencvData,offk+k,dataCurr);
+        opencvdata = structarrayset(opencvdata,offk+k,dataCurr);
 
     end % for fileNum = 1:numel(datFiles)
 
@@ -165,9 +145,9 @@ for dirNum = 1:1%numel(trainDataDirs)
         if isempty(k),
           error('did not find data for this png file');
         end
-        dataCurr = opencvData(offk+k);
+        dataCurr = opencvdata(offk+k);
         dataCurr.cropim = fullfile(dirName,fileName);
-        opencvData = structarrayset(opencvData,offk+k,dataCurr);
+        opencvdata = structarrayset(opencvdata,offk+k,dataCurr);
     end
 
     offk = offk + numel(baseNamesCurr);
