@@ -1,6 +1,7 @@
 syntax: glob
 *~
 *.png
+*.swp
 opencvdata.mat
-orientation_classifier.mat
+orientdata.mat
 training_data
