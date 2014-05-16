@@ -4,6 +4,7 @@ function runOrientationTraining()
 % opens processed training data and runs training. 
 %
 
+opencvdataFileName = 'opencvdata_full.mat';
 outputfile = 'orientdata.mat';
 
 % when finding body connected components, we close holes
@@ -23,7 +24,6 @@ fitparams.classifyparams.method = 'GentleBoost';
 fitparams.classifyparams.nlearn = 100;
 fitparams.classifyparams.learners = 'Tree';
 
-opencvdataFileName = 'opencvdata.mat';
 opencvfile = load(opencvdataFileName);
 opencvdata = opencvfile.opencvdata;
 
@@ -71,7 +71,7 @@ res = questdlg('Do you want to perform cross-validation? This will take a while.
 if strcmpi(res,'yes'),
   [yfitcv_or,fraccorrect_or] = CrossValidationOverMovies(Xor,yor,fitparams.featurenames,...
     imfiles(imis),fitparams.classifyparams.nlearn);
-    save('-append','orientation_classifier.mat','yfitc_or','fraccorrect_or');
+    save('-append','orientation_classifier.mat','yfitcv_or','fraccorrect_or');
 end
 
 % make an image of all the aligned flies

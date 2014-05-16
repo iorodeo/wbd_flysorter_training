@@ -27,7 +27,12 @@ trainDataDirs = getTrainDataDirs(trainDataBaseDir);
 opencvdata = [];
 offk= 0;
 
-for dirNum = 1:1%numel(trainDataDirs)
+%temp
+%fcnt = 0;
+%mcnt = 0;
+%numGender = 2;
+
+for dirNum = 1:numel(trainDataDirs)
     
     dirName = trainDataDirs{dirNum};
     fprintf('processing: dirNum = %d, dirName = %s\n',dirNum, dirName);
@@ -35,13 +40,48 @@ for dirNum = 1:1%numel(trainDataDirs)
     datFiles = dir(fullfile(dirName,'*.txt'));
     imgFiles = dir(fullfile(dirName,'*.png'));
 
-    % Load gender from labeled debug data
-    loadStruct = load(fullfile(dirName,'labeleddebugdata.mat'));
-    labeledDebugData = loadStruct.labeleddebugdata;
+    % Get gender information - either from labeleddebugdata.mat file or from file name
+    labeledDebugDataFile = fullfile(dirName,'labeleddebugdata.mat');
+    if exist(labeledDebugDataFile,'file')
+        hasFrameToGenderMap = true;
+        % Load gender from labeled debug data
+        loadStruct = load(labeledDebugDataFile);
+        labeledDebugData = loadStruct.labeleddebugdata;
+        frameToGenderMap = createFrameToGenderMap(labeledDebugData);
+    else
+        % Get gender from directory name
+        hasFrameToGenderMap = false;
+        if strfind(lower(dirName),'female')
+            gender = 'F';
+        elseif strfind(lower(dirName),'male')
+            gender = 'M';
+        else
+            error('gender not found in directory name');
+        end
 
-    % Create map for mapping frame number to gender. A little weird but seems to be the only way
-    % a map with double keys and char values. 
-    frameToGenderMap = createFrameToGenderMap(labeledDebugData);
+    end
+
+    %% temp
+    %if strcmp(gender,'F')
+    %    if (fcnt >= numGender)
+    %        continue;
+    %    end
+    %    fcnt = fcnt + 1;
+    %end
+    %if strcmp(gender, 'M')
+    %    if (mcnt >= numGender)
+    %        continue;
+    %    end
+    %    mcnt = mcnt + 1;
+    %end
+    %fcnt
+    %mcnt
+
+
+    %if (fcnt >= numGender ) && (mcnt >= numGender)
+    %    break;
+    %end
+
 
     % Read in data files - position data and pixel feature vectors
     baseNamesCurr = {};
@@ -49,7 +89,7 @@ for dirNum = 1:1%numel(trainDataDirs)
     for fileNum = 1:numel(datFiles)
 
         fileName = datFiles(fileNum).name;
-        fprintf('  %s\n',fileName);
+        %fprintf('  %s\n',fileName);
         
         isPosData = false;
         posDataInfo = [];
@@ -83,10 +123,16 @@ for dirNum = 1:1%numel(trainDataDirs)
                 dataCurr.(fns{l}) = str2double(dataCurr.(fns{l}));
             end
             dataCurr.dirName = dirName;
-            if frameToGenderMap.isKey(dataCurr.frame)
-                dataCurr.sex = frameToGenderMap(dataCurr.frame);
+
+            % Set gender information
+            if hasFrameToGenderMap
+                if frameToGenderMap.isKey(dataCurr.frame)
+                    dataCurr.sex = frameToGenderMap(dataCurr.frame);
+                else
+                    error('key %d not found in frameToGenderMap', dataCurr.frame);
+                end
             else
-                error('key %d not found in frameToGenderMap', dataCurr.frame);
+                dataCurr.sex = gender;
             end
 
         else
@@ -158,7 +204,6 @@ for i = 1:numel(labeledDebugData)
     else
         label = upper(label);
     end
-    disp(label);
     frameToGenderMap(frameNumber) = upper(label);
 end
 
