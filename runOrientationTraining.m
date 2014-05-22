@@ -29,7 +29,7 @@ opencvdata = opencvfile.opencvdata;
 
 % Create gtposdata structure --- what does 'gt' refer to ???
 gtposdata = struct;
-sex = [opencvdata.sex];
+sex = [opencvdata.sex];  % This is a bug - sex ends up with a different number of elements then gtposdata
 for i = 1:numel(opencvdata),
   gtposdata(i).x = opencvdata(i).x;
   gtposdata(i).y = opencvdata(i).y;

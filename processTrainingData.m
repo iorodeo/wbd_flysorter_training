@@ -199,11 +199,9 @@ frameToGenderMap = containers.Map(0.1,'a').remove(0.1);
 for i = 1:numel(labeledDebugData)
     frameNumber = 1000*labeledDebugData(i).frame + labeledDebugData(i).count + 1;
     label = labeledDebugData(i).manuallabel;
-    if isa(label,'double')
+    if ~isa(label,'char') || ~(strcmp(label,'F') || strcmp(label,'M')) 
         label = 'U';
-    else
-        label = upper(label);
-    end
+    end 
     frameToGenderMap(frameNumber) = upper(label);
 end
 
