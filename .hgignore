@@ -5,3 +5,5 @@ syntax: glob
 opencvdata*.mat
 orientdata*.mat
 training_data
+training_data_bak
+oldmat
