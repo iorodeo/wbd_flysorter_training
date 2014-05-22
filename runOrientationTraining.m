@@ -65,13 +65,21 @@ save(outputfile,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
 % look at area thresholds
 fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflies]).dd_bodyArea]));
 
+%fileData = load(outputfile);
+%imfiles = fileData.imfiles;
+%opencvdata = fileData.opencvdata;
+%gtposdata = fileData.gtposdata;
+%fitparams = fileData.fitparams;
+%sex = fileData.sex;
+%doflip = fileData.flip;
+
 % cross-validation
 % NOT WORKING.
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
 if strcmpi(res,'yes'),
   [yfitcv_or,fraccorrect_or] = CrossValidationOverMovies(Xor,yor,fitparams.featurenames,...
     imfiles(imis),fitparams.classifyparams.nlearn);
-    save('-append','orientation_classifier.mat','yfitcv_or','fraccorrect_or');
+    save('-append',outputfile,'yfitcv_or','fraccorrect_or');
 end
 
 % make an image of all the aligned flies

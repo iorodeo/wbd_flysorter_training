@@ -1,9 +1,6 @@
 function [yfitcv,fraccorrect] = CrossValidationOverMovies(X,y,featurenames,imfiles,nlearn,...
   varargin)
 
-disp(size(X))
-disp(size(y))
-
 [movienames] = myparse(varargin,'movienames',{});
 
 if isempty(movienames),
