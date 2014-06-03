@@ -4,7 +4,7 @@ function runOrientationTraining()
 % opens processed training data and runs training. 
 %
 
-opencvdataFileName = 'opencvdata_full.mat';
+opencvdataFileName = 'opencvdata.mat';
 outputfile = 'orientdata.mat';
 
 % when finding body connected components, we close holes

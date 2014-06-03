@@ -26,6 +26,7 @@ save(outputfile, 'classifyparams','gtposdata','opencvdata','sex','X','y','imfile
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
 if strcmpi(res,'yes'),
     [yfitcv,fraccorrect] = CrossValidationOverMovies(X,y,classifyparams.featurenames,imfiles(imis),classifyparams.nlearn);
+    save('-append',outputfile,'yfitcv','fraccorrect');
 end
 
 

@@ -13,7 +13,7 @@ X = [];
 fprintf('Creating training data...\n');
 
 for ii = 1:n,
-  
+
   i = idxgood(ii);
   
   if mod(ii,100) == 0,

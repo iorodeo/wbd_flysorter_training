@@ -2,8 +2,8 @@ syntax: glob
 *~
 *.png
 *.swp
-opencvdata*.mat
-orientdata*.mat
+*.mat
 training_data
-training_data_bak
+training_data*
+backup_mat
 oldmat
