@@ -27,11 +27,6 @@ trainDataDirs = getTrainDataDirs(trainDataBaseDir);
 opencvdata = [];
 offk= 0;
 
-%temp
-%fcnt = 0;
-%mcnt = 0;
-%numGender = 2;
-
 for dirNum = 1:numel(trainDataDirs)
     
     dirName = trainDataDirs{dirNum};
@@ -60,27 +55,6 @@ for dirNum = 1:numel(trainDataDirs)
         end
 
     end
-
-    %% temp
-    %if strcmp(gender,'F')
-    %    if (fcnt >= numGender)
-    %        continue;
-    %    end
-    %    fcnt = fcnt + 1;
-    %end
-    %if strcmp(gender, 'M')
-    %    if (mcnt >= numGender)
-    %        continue;
-    %    end
-    %    mcnt = mcnt + 1;
-    %end
-    %fcnt
-    %mcnt
-
-
-    %if (fcnt >= numGender ) && (mcnt >= numGender)
-    %    break;
-    %end
 
 
     % Read in data files - position data and pixel feature vectors

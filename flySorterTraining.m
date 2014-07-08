@@ -1,0 +1,194 @@
+function varargout = flySorterTraining(varargin)
+% FLYSORTERTRAINING MATLAB code for flySorterTraining.fig
+%      FLYSORTERTRAINING, by itself, creates a new FLYSORTERTRAINING or raises the existing
+%      singleton*.
+%
+%      H = FLYSORTERTRAINING returns the handle to a new FLYSORTERTRAINING or the handle to
+%      the existing singleton*.
+%
+%      FLYSORTERTRAINING('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in FLYSORTERTRAINING.M with the given input arguments.
+%
+%      FLYSORTERTRAINING('Property','Value',...) creates a new FLYSORTERTRAINING or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before flySorterTraining_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to flySorterTraining_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help flySorterTraining
+
+% Last Modified by GUIDE v2.5 07-Jul-2014 18:12:26
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @flySorterTraining_OpeningFcn, ...
+                   'gui_OutputFcn',  @flySorterTraining_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before flySorterTraining is made visible.
+function flySorterTraining_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to flySorterTraining (see VARARGIN)
+
+% Choose default command line output for flySorterTraining
+handles.output = hObject;
+handles.impl = FlySorterTrainingImpl(handles.flySorterTrainingFigure);
+guidata(hObject, handles);
+
+% UIWAIT makes flySorterTraining wait for user response (see UIRESUME)
+% uiwait(handles.flySorterTrainingFigure);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = flySorterTraining_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% --- Executes on button press in jabbaPathPushButton.
+function jabbaPathPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to jabbaPathPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.setJabbaPath();
+
+
+% --- Executes on button press in poolEnableCheckbox.
+function poolEnableCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to poolEnableCheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of poolEnableCheckbox
+handles.impl.setPoolEnable()
+
+
+% --- Executes on selection change in numberOfCoresPopup.
+function numberOfCoresPopup_Callback(hObject, eventdata, handles)
+% hObject    handle to numberOfCoresPopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns numberOfCoresPopup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from numberOfCoresPopup
+handles.impl.setNumberOfPoolCores()
+
+
+% --- Executes during object creation, after setting all properties.
+function numberOfCoresPopup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to numberOfCoresPopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in generateClassifiersPushButton.
+function generateClassifiersPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to generateClassifiersPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.generateClassifierFiles()
+
+
+% --- Executes on button press in generateJsonConfigPushButton.
+function generateJsonConfigPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to generateJsonConfigPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.generateJsonConfigFiles()
+
+
+% --- Executes on button press in clearGenderTrainingPushButton.
+function clearGenderTrainingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearGenderTrainingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.clearGenderTraining()
+
+
+% --- Executes on button press in runGenderTrainingPushButton.
+function runGenderTrainingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to runGenderTrainingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.runGenderTraining()
+
+
+% --- Executes on button press in runOrientTrainingPushButton.
+function runOrientTrainingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to runOrientTrainingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.runOrientationTraining();
+
+
+% --- Executes on button press in clearOrientTrainingPushButton.
+function clearOrientTrainingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearOrientTrainingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.clearOrientationTraining();
+
+
+% --- Executes on button press in clearPreProcessingPushButton.
+function clearPreProcessingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearPreProcessingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.clearPreProcessing();
+
+
+% --- Executes on button press in runPreProcessingPushButton.
+function runPreProcessingPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to runPreProcessingPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.runPreProcessing();
+
+
+% --- Executes on button press in selectTrainingDataPushButton.
+function selectTrainingDataPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to selectTrainingDataPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.selectTrainingData();
+
+
+% --- Executes on button press in clearTrainingDataPushButton.
+function clearTrainingDataPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to clearTrainingDataPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.clearTraingingData()
