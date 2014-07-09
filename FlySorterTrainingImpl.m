@@ -1,20 +1,25 @@
 classdef FlySorterTrainingImpl < handle
 
+    properties (Constant)
+        rcDir = '.flysorter_training_rc';
+    end
+
     properties
 
         figureHandle = [];
         numCores = 0;
 
-        %haveMatlabPool = false;
-        %haveJabbaPath = false;
-        %haveTrainingData = false;
-        %havePreprocessedData = false;
-        %haveOrientationData = false;
-        %haveGenderData = false;
+        haveMatlabpool = false;
+        haveJabbaPath = false;
+        haveTrainingData = false;
+        havePreProcessingData = false;
+        haveOrientationData = false;
+        haveGenderData = false;
     end
 
     properties (Dependent)
         handles;
+        rcDirFullPath;
     end
 
 
@@ -24,11 +29,16 @@ classdef FlySorterTrainingImpl < handle
         function self = FlySorterTrainingImpl(figureHandle)
             %warning off MATLAB:Uipanel:HiddenImplementation;
             self.figureHandle = figureHandle;
+
+            self.haveMatlabpool= checkForParaCompToolbox();
             self.initNumberOfCoresPopup()
-            %self.setAllUiPanelEnable('off')
+
+            self.checkForRcDir();
+            self.loadStateFromRcDir();
+
+            self.setAllUiPanelEnable('off')
+            self.updateAllUiPanelEnable()
         end
-
-
 
 
         function setPoolEnable(self)
@@ -47,7 +57,9 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setJabbaPath(self)
-            disp('setJabbaPath')
+            startDir = getUserHomeDir();
+            dirName = uigetdir(startDir, 'Select path to JABBA installation' )
+
         end
 
 
@@ -105,18 +117,40 @@ classdef FlySorterTrainingImpl < handle
             handles = guidata(self.figureHandle);
         end
 
+
+        function rcDirFullPath = get.rcDirFullPath(self)
+            rcDirFullPath = [getUserHomeDir(), filesep, self.rcDir];
+        end
+
     end
 
 
     methods (Access=private)
 
         
-        function updateUiPanelEnable(self)
+        function updateAllUiPanelEnable(self)
+            self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
+            self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
+            self.enableUiPanelOnTest(self.handles.trainingDataPanel, self.haveJabbaPath);
+            self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
+            self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
+            self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
+            self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
+        end
+
+
+        function enableUiPanelOnTest(self, panelHandle, test)
+            enable = 'off';
+            if test 
+                enable = 'on';
+            end
+            setUiPanelEnable(panelHandle,enable);
+
         end
 
 
         function setAllUiPanelEnable(self,value)
-            figureChildren = get(self.figureHandle,'Children')
+            figureChildren = get(self.figureHandle,'Children');
             for i = 1:length(figureChildren)
                 child = figureChildren(i);
                 childType = get(child,'Type');
@@ -128,7 +162,6 @@ classdef FlySorterTrainingImpl < handle
 
 
         function initNumberOfCoresPopup(self)
-            disp('initNumberOfCoresPopup');
             self.numCores = feature('numCores');
             numCoresCell = {};
             for i = 1:self.numCores
@@ -136,6 +169,25 @@ classdef FlySorterTrainingImpl < handle
             end
             set(self.handles.numberOfCoresPopup, 'String', numCoresCell);
             set(self.handles.numberOfCoresPopup, 'Value', self.numCores);
+        end
+
+
+        function checkForRcDir(self)
+            % Checks for existance of resources directory - creates if not found.
+            if ~exist(self.rcDirFullPath,'dir')
+                fprintf('%s does not exist creating\n', self.rcDirFullPath);
+                [status, message, ~] = mkdir(getUserHomeDir(), self.rcDir);
+                if ~status
+                    error('unable to create rc directory %s', message);
+                end
+            end
+        end
+
+
+        function loadStateFromRcDir(self)
+        end
+
+        function saveStateToRcDir(self)
         end
 
 
@@ -147,13 +199,32 @@ end
 % Utility Functions
 % -----------------------------------------------------------------------------
 
-% --- Sets enable ('on', 'off') for uipanel
 function setUiPanelEnable(panelHandle,value)
     if ~( strcmp(value,'on') || strcmp(value,'off'))
         error('value must be either on or off');
     end
     childHandles = findall(panelHandle,'-property', 'enable');
     set(childHandles,'enable',value);
+end
+
+
+function found = checkForParaCompToolbox()
+    verInfo = ver();
+    found = false;
+    for i =1:length(verInfo)
+        if strcmpi('Parallel Computing Toolbox', verInfo(i).Name)
+            found = true;
+        end
+    end
+end
+
+
+function userDir = getUserHomeDir()
+    if ispc 
+        userDir= getenv('USERPROFILE'); 
+    else 
+        userDir= getenv('HOME'); 
+    end
 end
 
 
