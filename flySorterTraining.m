@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 07-Jul-2014 18:12:26
+% Last Modified by GUIDE v2.5 11-Jul-2014 10:42:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,7 +77,7 @@ function jabbaPathPushButton_Callback(hObject, eventdata, handles)
 % hObject    handle to jabbaPathPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.impl.setJabbaPath();
+handles.impl.setJabbaPathWithGui();
 
 
 % --- Executes on button press in poolEnableCheckbox.
@@ -192,3 +192,13 @@ function clearTrainingDataPushButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.clearTraingingData()
+
+
+% --- Executes when user attempts to close flySorterTrainingFigure.
+function flySorterTrainingFigure_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to flySorterTrainingFigure (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+delete(hObject);
