@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 17-Jul-2014 17:29:45
+% Last Modified by GUIDE v2.5 18-Jul-2014 12:29:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -130,33 +130,33 @@ function generateJsonConfigPushButton_Callback(hObject, eventdata, handles)
 handles.impl.generateJsonConfigFiles()
 
 
-% --- Executes on button press in clearGenderTrainingPushButton.
-function clearGenderTrainingPushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to clearGenderTrainingPushButton (see GCBO)
+% --- Executes on button press in userClassifierClearPushButton.
+function userClassifierClearPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to userClassifierClearPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.impl.clearGenderTraining()
+handles.impl.clearUserClassifierTraining()
 
 
-% --- Executes on button press in runGenderTrainingPushButton.
-function runGenderTrainingPushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to runGenderTrainingPushButton (see GCBO)
+% --- Executes on button press in userClassifierRunPushButton.
+function userClassifierRunPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to userClassifierRunPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.impl.runGenderTraining()
+handles.impl.runUserClassifierTraining()
 
 
-% --- Executes on button press in runOrientTrainingPushButton.
-function runOrientTrainingPushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to runOrientTrainingPushButton (see GCBO)
+% --- Executes on button press in orientationRunPushButton.
+function orientationRunPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationRunPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.runOrientationTraining();
 
 
-% --- Executes on button press in clearOrientTrainingPushButton.
-function clearOrientTrainingPushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to clearOrientTrainingPushButton (see GCBO)
+% --- Executes on button press in orientationClearPushButton.
+function orientationClearPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationClearPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.clearOrientationTraining();
@@ -178,9 +178,9 @@ function runPreProcessingPushButton_Callback(hObject, eventdata, handles)
 handles.impl.runPreProcessing();
 
 
-% --- Executes on button press in selectTrainingDataPushButton.
-function selectTrainingDataPushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to selectTrainingDataPushButton (see GCBO)
+% --- Executes on button press in selectDataPushButton.
+function selectDataPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to selectDataPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.selectTrainingData();
@@ -264,18 +264,18 @@ function fileOrientationTrainingPushButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in checkbox5.
-function checkbox5_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox5 (see GCBO)
+% --- Executes on button press in orientationHintCheckbox.
+function orientationHintCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationHintCheckbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkbox5
+% Hint: get(hObject,'Value') returns toggle state of orientationHintCheckbox
 
 
-% --- Executes on button press in pushbutton31.
-function pushbutton31_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton31 (see GCBO)
+% --- Executes on button press in orientationHintFilePushButton.
+function orientationHintFilePushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationHintFilePushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -285,3 +285,84 @@ function pushbutton32_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton32 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+function filePrefixEditText_Callback(hObject, eventdata, handles)
+% hObject    handle to filePrefixEditText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of filePrefixEditText as text
+%        str2double(get(hObject,'String')) returns contents of filePrefixEditText as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function filePrefixEditText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filePrefixEditText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in filePrefixCheckbox.
+function filePrefixCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to filePrefixCheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of filePrefixCheckbox
+
+
+% --- Executes on button press in autoIncrementCheckbox.
+function autoIncrementCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to autoIncrementCheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of autoIncrementCheckbox
+
+
+% --- Executes on button press in addDatetimeCheckbox.
+function addDatetimeCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to addDatetimeCheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of addDatetimeCheckbox
+
+
+
+function workingDirEditText_Callback(hObject, eventdata, handles)
+% hObject    handle to workingDirEditText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of workingDirEditText as text
+%        str2double(get(hObject,'String')) returns contents of workingDirEditText as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function workingDirEditText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to workingDirEditText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in workingDirPushButton.
+function workingDirPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to workingDirPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.setWorkingDirWithGui();

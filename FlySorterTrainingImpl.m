@@ -7,6 +7,7 @@ classdef FlySorterTrainingImpl < handle
         saveFieldNames = {             ... 
             'numMatlabpoolCores',      ...
             'jabbaPath',               ...
+            'workingDir',              ...
             };
     end
 
@@ -16,26 +17,34 @@ classdef FlySorterTrainingImpl < handle
         figureHandle = [];
         machineNumCores = 0;
 
-        haveMatlabpool = false;
         numMatlabpoolCores = [];
 
-        haveJabbaPath = false;
         jabbaPath = [];
-
-        haveTrainingData = false;
-        havePreProcessingData = false;
-        haveOrientationData = false;
-        haveGenderData = false;
+        workingDir = [];
 
     end
 
 
     properties (Dependent)
+
         handles;
         rcDirFullPath;
         savedStateFullPath;
         jabbaMiscPath;
         jabbaFileHandlingPath;
+
+        isFilePrefixChecked;
+        isAddDatetimeChecked;
+        isAutoIncrementChecked;
+
+        haveMatlabpool;
+        haveJabbaPath;
+        haveWorkingDir;
+        haveTrainingData;
+        havePreProcessingData;
+        haveOrientationData;
+        haveUserClassifierData;
+
     end
 
 
@@ -46,16 +55,14 @@ classdef FlySorterTrainingImpl < handle
             %warning off MATLAB:Uipanel:HiddenImplementation;
             self.figureHandle = figureHandle;
 
-            self.haveMatlabpool= checkForParaCompToolbox();
             self.initNumberOfCoresPopup()
 
             self.checkForRcDir();
             self.loadStateFromRcDir();
 
-            self.setAllUiPanelEnable('off')
-            self.updateAllUiPanelEnable()
+            %self.setAllUiPanelEnable('off')
+            %self.updateAllUiPanelEnable()
 
-            %self.setJabbaPathText();
         end
 
 
@@ -81,17 +88,29 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setJabbaPathWithGui(self)
-            startDir = self.getJabbaPathGuiStartDir();
-            jabbaDirName = uigetdir(startDir, 'Select path to JABBA installation');
-            if jabbaDirName ~= false
-                self.updateJabbaPath(jabbaDirName);
+            startPath = getStartPathForUiGetDir(self.jabbaPath);
+            jabbaPathTemp = uigetdir(startPath, 'Select path to JABBA installation');
+            if jabbaPathTemp ~= false
+                self.updateJabbaPath(jabbaPathTemp);
                 self.updateAllUiPanelEnable()
+            end
+        end
+
+
+        function setWorkingDirWithGui(self)
+            disp('setWorkingDirWithGui');
+            startPath = getStartPathForUiGetDir(self.workingDir);
+            workingDirTemp = uigetdir(startPath, 'Select path to working directory');
+            if workingDirTemp ~= false
+                self.updateWorkingDir(workingDirTemp);
+                self.updateAllUiPanelEnable();
             end
         end
 
 
         function selectTrainingData(self)
             disp('selectTrainingData');
+            self.includeFilePrefix
         end
 
 
@@ -120,13 +139,13 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function clearGenderTraining(self)
-            disp('clearGenderTraining')
+        function clearUserClassifierTraining(self)
+            disp('clearUserClassifierTraining')
         end
 
 
-        function runGenderTraining(self)
-            disp('runGenderTraining');
+        function runUserClassifierTraining(self)
+            disp('runUserClassifierTraining');
         end
 
 
@@ -139,6 +158,8 @@ classdef FlySorterTrainingImpl < handle
             disp('generateJsonConfigFiles');
         end
 
+        % Dependent properties
+        % ---------------------------------------------------------------------
 
         function handles = get.handles(self)
             handles = guidata(self.figureHandle);
@@ -172,11 +193,62 @@ classdef FlySorterTrainingImpl < handle
             end
         end
 
+
+        function isFilePrefixChecked = get.isFilePrefixChecked(self)
+            isFilePrefixChecked= get(self.handles.filePrefixCheckbox,'value');
+        end
+
+       
+        function isAddDatetimeChecked = get.isAddDatetimeChecked(self)
+            isAddDatetimeChecked = get(self,handles.addDatetimeCheckbox,'value');
+        end
+
+
+        function isAutoIncrementChecked = get.isAutoIncrementChecked(self)
+            isAutoIncrementChecked = get(self,handles.autoIncrementCheckbox,'value');
+        end
+
+
+        function haveMatlabpool = get.haveMatlabpool(self)
+            haveMatlabpool= checkForParaCompToolbox();
+        end
+
+
+        function haveJabbaPath = get.haveJabbaPath(self)
+            haveJabbaPath =  ~isempty(self.jabbaPath);
+        end
+
+
+        function haveWorkingDir = get.haveWorkingDir(self)
+            haveWorkingDir = ~isempty(self.workingDir);
+        end
+
+
+        function haveTrainingData = get.haveTrainingData(self)
+            haveTrainingData = false;
+        end
+        
+
+        function havePreProcessingData = get.havePreProcessingData(self)
+            havePreProcessingData = false;
+        end
+
+
+        function haveOrientationData = get.haveOrientationData
+            haveOrientationData = false;
+        end
+
+
+        function haveUserClassifierData = get.haveUserClassifierData(self)
+            haveUserClassifierData = fasle;
+        end
+
     end
 
 
 
-    methods (Access=private)
+    methods (Access=protected)
+
 
         function updateJabbaPath(self,newJabbaPath)
             if nargin < 2
@@ -184,46 +256,40 @@ classdef FlySorterTrainingImpl < handle
             end
             self.rmJabbaFromMatlabPath();
             self.jabbaPath = newJabbaPath;
-            self.haveJabbaPath = true;
             self.checkJabbaPath();
             self.addJabbaToMatlabPath();
-            %self.setJabbaPathText();
+            self.setJabbaPathText();
+        end
+
+
+        function updateWorkingDir(self,newWorkingDir)
+            if nargin == 2
+                self.workingDir = newWorkingDir;
+            end
+            self.checkWorkingDir();
+            self.setWorkingDirText();
         end
 
 
         function setJabbaPathText(self)
-            textPosition = get(self.handles.jabbaPathText1,'position');
-            textLength = textPosition(3);
-            if self.jabbaPath
-                if length(self.jabbaPath) <= textLength
-                    jabbaPathStr1 = self.jabbaPath;
-                    jabbaPathStr2 = '';
-                else
-                    jabbaPathStr1 = self.jabbaPath(1:textLength);
-                    jabbaPathRem = self.jabbaPath(textLength+1:end);
-                    if length(jabbaPathRem) <= textLength
-                        jabbaPathStr2 = jabbaPathRem;
-                    else
-                        jabbaPathStr2 = jabbaPathRem(1:textLength);
-                    end
-                end
-            else
-                jabbaPathStr1 = 'not set';
-                jabbaPathStr2 = '';
-            end
-            set(self.handles.jabbaPathText1,'string', jabbaPathStr1);
-            set(self.handles.jabbaPathText2,'string', jabbaPathStr2);
+            setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
+        end
+
+
+        function setWorkingDirText(self)
+            setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
         end
 
         
         function updateAllUiPanelEnable(self)
             self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
             self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
-            self.enableUiPanelOnTest(self.handles.trainingDataPanel, self.haveJabbaPath);
-            self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
-            self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
-            self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
-            self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
+            self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
+            %self.enableUiPanelOnTest(self.handles.trainingDataPanel, self.haveJabbaPath);
+            %self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
+            %self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
+            %self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
+            %self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
         end
 
 
@@ -273,6 +339,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function loadStateFromRcDir(self)
+
             % Get saved state information from file in rc directory
             haveSavedStateData = false;
             savedStateStruct = [];
@@ -293,14 +360,8 @@ classdef FlySorterTrainingImpl < handle
                         self.(fieldName) = savedStateStruct.(fieldName);
                     end
                 end
-
-                if self.jabbaPath
-                    self.updateJabbaPath();
-                else
-                    self.haveJabbaPath = false;
-                end
-
-
+                self.updateJabbaPath();
+                self.updateWorkingDir();
             else
                 fprintf('no saved state information - using default values\n');
             end
@@ -316,29 +377,6 @@ classdef FlySorterTrainingImpl < handle
             save(self.savedStateFullPath, 'savedStateStruct');
         end
 
-
-        function startDir = getJabbaPathGuiStartDir(self)
-            if exist(self.jabbaPath,'dir')
-                % Use current Jabba path if it exists
-                startDir = self.jabbaPath;
-            else
-                % The current Jabba path doesn't exist - try and get directory 
-                % in users home directory otherwise use users home directory.
-                homeDir = getUserHomeDir();
-                homeDirItems = dir(homeDir);
-                startDir = homeDir;
-                for i=1:numel(homeDirItems)
-                    item  = homeDirItems(i);
-                    if strcmp(item.name,'.') ||strcmp(item.name,'..')
-                        continue;
-                    end
-                    if item.isdir
-                        startDir = [startDir,filesep,item.name];
-                        break;
-                    end
-                end
-            end
-        end
 
 
         function checkJabbaPath(self)
@@ -367,11 +405,21 @@ classdef FlySorterTrainingImpl < handle
                     end
                 end 
                 if ~jabbaPathOk 
+                    self.jabbaPath = [];
                     h = errordlg(errorMsg, 'JABBA Path Error', 'modal');
                     uiwait(h);
-                    self.jabbaPath = [];
-                    self.haveJabbaPath = false;
+                end
+            end
+        end
 
+
+        function checkWorkingDir(self)
+            if self.haveWorkingDir
+                if ~exist(self.workingDir)
+                    self.workingDir = [];
+                    errorMsg = 'Working Directory does not exist!';
+                    h = warndlg(errorMsg, 'FlySorter Working Directory Warning', 'modal');
+                    uiwait(h);
                 end
             end
         end
@@ -387,12 +435,14 @@ classdef FlySorterTrainingImpl < handle
 
         function rmJabbaFromMatlabPath(self)
             if self.haveJabbaPath
-                rmpath(self.jabbaMiscPath);
-                rmpath(self.jabbaFileHandlingPath);
+                if ~isempty(strfind(path, self.jabbaMiscPath))
+                    rmpath(self.jabbaMiscPath);
+                end
+                if ~isempty(strfind(path, self.jabbaFileHandlingPath))
+                    rmpath(self.jabbaFileHandlingPath);
+                end
             end
         end
-
-
 
 
     end
@@ -402,13 +452,43 @@ end
 
 % Utility Functions
 % -----------------------------------------------------------------------------
+function setMultiLineEditText(editTextHandle, editTextString)
+    textPosition = get(editTextHandle,'position');
+    editTextLength = textPosition(3);
+    if editTextString
+        editTextCell = {};
+        while length(editTextString) > 0 
+            if length(editTextString) > editTextLength
+                subString = editTextString(1:textLegnth);
+                editTextString = editTextString(editTextLength+1,end);
+            else
+                subString = editTextString(1:end);
+                editTextString = [];
+            end
+            editTextCell{length(editTextCell)+1} = subString;
+        end
+    else
+        editTextCell = {'empty'};
+    end 
+    set(editTextHandle,'string',editTextCell);
+end
+
 
 function setUiPanelEnable(panelHandle,value)
     if ~( strcmp(value,'on') || strcmp(value,'off'))
         error('value must be either on or off');
     end
     childHandles = findall(panelHandle,'-property', 'enable');
-    set(childHandles,'enable',value);
+    for i = 1:numel(childHandles) 
+        child = childHandles(i);
+        childType = get(child,'Type');
+        if strcmpi(childType,'uipanel')
+            setUiPanelEnable(child,value)
+        else
+            set(child,'enable',value);
+        end
+
+    end
 end
 
 
@@ -431,6 +511,28 @@ function userDir = getUserHomeDir()
     end
 end
 
+
+function startPath = getStartPathForUiGetDir(currPath) 
+    if exist(currPath,'dir')
+        startPath = currPath;
+    else
+        % if current path doesn't exist - try and get directory 
+        % in users home directory otherwise use users home directory.
+        homeDir = getUserHomeDir();
+        homeDirItems = dir(homeDir);
+        startPath = homeDir;
+        for i=1:numel(homeDirItems)
+            item  = homeDirItems(i);
+            if strcmp(item.name,'.') ||strcmp(item.name,'..')
+                continue;
+            end
+            if item.isdir
+                startPath = [startPath,filesep,item.name];
+                break;
+            end
+        end
+    end
+end
 
 
 
