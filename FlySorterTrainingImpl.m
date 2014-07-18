@@ -55,7 +55,7 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             self.updateAllUiPanelEnable()
 
-            self.setJabbaPathText();
+            %self.setJabbaPathText();
         end
 
 
@@ -187,7 +187,7 @@ classdef FlySorterTrainingImpl < handle
             self.haveJabbaPath = true;
             self.checkJabbaPath();
             self.addJabbaToMatlabPath();
-            self.setJabbaPathText();
+            %self.setJabbaPathText();
         end
 
 
