@@ -8,6 +8,9 @@ classdef FlySorterTrainingImpl < handle
             'numMatlabpoolCores',      ...
             'jabbaPath',               ...
             'workingDir',              ...
+            'isFilePrefixChecked',     ...
+            'isAutoIncrementChecked',  ...
+            'isAddDatetimeChecked',    ...
             };
     end
 
@@ -48,21 +51,16 @@ classdef FlySorterTrainingImpl < handle
     end
 
 
+
     methods 
         
 
         function self = FlySorterTrainingImpl(figureHandle)
-            %warning off MATLAB:Uipanel:HiddenImplementation;
             self.figureHandle = figureHandle;
-
             self.initNumberOfCoresPopup()
-
-            self.checkForRcDir();
             self.loadStateFromRcDir();
-
-            %self.setAllUiPanelEnable('off')
-            %self.updateAllUiPanelEnable()
-
+            self.setAllUiPanelEnable('off')
+            self.updateAllUiPanelEnable()
         end
 
 
@@ -110,7 +108,6 @@ classdef FlySorterTrainingImpl < handle
 
         function selectTrainingData(self)
             disp('selectTrainingData');
-            self.includeFilePrefix
         end
 
 
@@ -158,7 +155,7 @@ classdef FlySorterTrainingImpl < handle
             disp('generateJsonConfigFiles');
         end
 
-        % Dependent properties
+        % Getter/Setters for Dependent properties
         % ---------------------------------------------------------------------
 
         function handles = get.handles(self)
@@ -198,14 +195,27 @@ classdef FlySorterTrainingImpl < handle
             isFilePrefixChecked= get(self.handles.filePrefixCheckbox,'value');
         end
 
+        function set.isFilePrefixChecked(self, value)
+            set(self.handles.filePrefixCheckbox,'value', value) 
+        end
+
        
         function isAddDatetimeChecked = get.isAddDatetimeChecked(self)
-            isAddDatetimeChecked = get(self,handles.addDatetimeCheckbox,'value');
+            isAddDatetimeChecked = get(self.handles.addDatetimeCheckbox,'value');
+        end
+
+        function set.isAddDatetimeChecked(self,value)
+            set(self.handles.addDatetimeCheckbox,'value', value);
         end
 
 
         function isAutoIncrementChecked = get.isAutoIncrementChecked(self)
-            isAutoIncrementChecked = get(self,handles.autoIncrementCheckbox,'value');
+            isAutoIncrementChecked = get(self.handles.autoIncrementCheckbox,'value');
+        end
+
+
+        function set.isAutoIncrementChecked(self,value)
+            set(self.handles.autoIncrementCheckbox, 'value', value);
         end
 
 
@@ -234,7 +244,7 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function haveOrientationData = get.haveOrientationData
+        function haveOrientationData = get.haveOrientationData(self)
             haveOrientationData = false;
         end
 
@@ -285,7 +295,9 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
             self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
             self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
-            %self.enableUiPanelOnTest(self.handles.trainingDataPanel, self.haveJabbaPath);
+
+            self.enableUiPanelOnTest(self.handles.selectDataPanel, self.haveJabbaPath & self.haveWorkingDir);
+
             %self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
             %self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
             %self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
@@ -339,8 +351,8 @@ classdef FlySorterTrainingImpl < handle
 
 
         function loadStateFromRcDir(self)
-
             % Get saved state information from file in rc directory
+            self.checkForRcDir();
             haveSavedStateData = false;
             savedStateStruct = [];
             if exist(self.savedStateFullPath,'file')
@@ -351,7 +363,6 @@ classdef FlySorterTrainingImpl < handle
                     haveSavedStateData = true;
                 end
             end
-
             % Set field values using saved state data
             if haveSavedStateData
                 for i=1:numel(self.saveFieldNames)

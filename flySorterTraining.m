@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 18-Jul-2014 12:29:18
+% Last Modified by GUIDE v2.5 18-Jul-2014 16:45:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -200,6 +200,7 @@ function flySorterTrainingFigure_CloseRequestFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
 % Hint: delete(hObject) closes the figure
 delete(hObject);
 
@@ -287,7 +288,6 @@ function pushbutton32_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-
 function filePrefixEditText_Callback(hObject, eventdata, handles)
 % hObject    handle to filePrefixEditText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -366,3 +366,16 @@ function workingDirPushButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.setWorkingDirWithGui();
+
+
+% --- Executes during object deletion, before destroying properties.
+function flySorterTrainingFigure_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to flySorterTrainingFigure (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.impl.delete()  % delete before figure is detroyed - as we need
+                       % data from graphics objects to save state.
+
+
+
