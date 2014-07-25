@@ -1,11 +1,22 @@
-function runOrientationTraining()
+function runOrientationTraining(preProcessingFile,outputFileName)
+
 % runOrientationTraining:
 %
 % opens processed training data and runs training. 
 %
 
-opencvdataFileName = 'opencvdata.mat';
-outputfile = 'orientdata.mat';
+% Old
+% ---------------------------------------------------------------------
+%opencvdataFileName = 'opencvdata.mat';
+%outputfile = 'orientdata.mat';
+% ---------------------------------------------------------------------
+
+
+% Note, 
+% --------------------------------------------------------------------
+% Where do we set these params???
+% I think these params need to be in a config file or set by the gui. 
+% --------------------------------------------------------------------
 
 % when finding body connected components, we close holes
 fitparams.se_close = strel('disk',15,0);
@@ -23,9 +34,16 @@ fitparams.classifyparams.padborder = 15;
 fitparams.classifyparams.method = 'GentleBoost';
 fitparams.classifyparams.nlearn = 100;
 fitparams.classifyparams.learners = 'Tree';
+% -------------------------------------------------------------------
 
-opencvfile = load(opencvdataFileName);
-opencvdata = opencvfile.opencvdata;
+% Old
+% -------------------------------------------------------------------
+%opencvfile = load(opencvdataFileName);
+%opencvdata = opencvfile.opencvdata;
+% -------------------------------------------------------------------
+fileData = load(preProcessingFile);
+preProcessingData = fileData.preProcessingData;
+opencvdata = preProcessingData.opencvdata;
 
 % Create gtposdata structure --- what does 'gt' refer to ???
 gtposdata = struct;
@@ -60,7 +78,12 @@ for i = 1:numel(gtposdata),
 end
 
 
-save(outputfile,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
+% Old
+% -----------------------------------------------------------------------------------
+%save(outputfile,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
+% -----------------------------------------------------------------------------------
+
+save(outputFileName,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
 
 % look at area thresholds
 fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflies]).dd_bodyArea]));
@@ -74,12 +97,15 @@ fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflie
 %doflip = fileData.flip;
 
 % cross-validation
-% NOT WORKING.
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
 if strcmpi(res,'yes'),
   [yfitcv_or,fraccorrect_or] = CrossValidationOverMovies(Xor,yor,fitparams.featurenames,...
     imfiles(imis),fitparams.classifyparams.nlearn);
-    save('-append',outputfile,'yfitcv_or','fraccorrect_or');
+    % Old
+    % -------------------------------------------------------
+    %save('-append',outputfile,'yfitcv_or','fraccorrect_or');
+    % -------------------------------------------------------
+    save('-append',outputFileName,'yfitcv_or','fraccorrect_or');
 end
 
 % make an image of all the aligned flies

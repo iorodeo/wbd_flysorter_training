@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 25-Jul-2014 13:36:39
+% Last Modified by GUIDE v2.5 25-Jul-2014 13:46:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -382,11 +382,12 @@ handles.impl.delete()  % delete before figure is detroyed - as we need
                        % data from graphics objects to save state.
 
 
-% --- Executes on button press in updateDatetimePushButton.
-function updateDatetimePushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to updateDatetimePushButton (see GCBO)
+% --- Executes on button press in nowDatetimePushButton.
+function nowDatetimePushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to nowDatetimePushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.impl.setDatetimeToNow();
 
 
 % --- Executes on button press in selectDateTimePushButton.
@@ -394,3 +395,4 @@ function selectDateTimePushButton_Callback(hObject, eventdata, handles)
 % hObject    handle to selectDateTimePushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.impl.setDatetimeWithGui();

@@ -4,6 +4,11 @@ function processTrainingData(trainingDataDirs,outputFileName)
 % organizes data found int base training data directory. Saves this information in 
 % to output file.
 
+% Note, 
+% ---------------------------------------------------------------------------------------
+% Need to modify to handle other types of classifiers besides gender
+% ---------------------------------------------------------------------------------------
+
 opencvdata = getOpencvData(trainingDataDirs);
 preProcessingData.opencvdata = opencvdata;
 preProcessingData.traingingDataDirs = trainingDataDirs;

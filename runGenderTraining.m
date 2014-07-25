@@ -3,11 +3,15 @@ function runGenderTraining()
 %
 outputfile = 'genderdata.mat';
 
+% Note
+% -------------------------------------------------------------------
+% These parameters need to be set somewhere
 classifyparams = struct;
 classifyparams.padborder = 15;
 classifyparams.method = 'GentleBoost';
 classifyparams.nlearn = 100;
 classifyparams.learners = 'Tree';
+% --------------------------------------------------------------------
 
 % Load orientation classifier data and unpack
 orientdataFileName = 'orientdata.mat'

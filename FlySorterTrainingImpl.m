@@ -33,6 +33,7 @@ classdef FlySorterTrainingImpl < handle
         numMatlabpoolCores = 0;
         jabbaPath = [];
         workingDir = [];
+        datetime = [];
         trainingDataDirs = {};  
 
     end
@@ -193,6 +194,13 @@ classdef FlySorterTrainingImpl < handle
             end
         end
 
+        function runOrientationTraining(self)
+            disp('runOrientationTraining');
+            self.setAllUiPanelEnable('off')
+            % need somethine here to make changes take effect ....
+            runOrientationTraining(self.preProcessingFileFullPath, self.orientationFileFullPath);
+            self.updateAllUiPanelEnable()
+        end
 
 
         function clearOrientationTraining(self)
@@ -200,9 +208,6 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function runOrientationTraining(self)
-            disp('runOrientationTraining');
-        end
 
 
         function clearUserClassifierTraining(self)
@@ -225,8 +230,19 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function setDatetimeToNow(self)
+            disp('setDatetimeToNow');
+        end
+
+
+        function setDatetimeWithGui(self)
+            disp('setDatetimeWithGui');
+        end
+
+
         function onOutFileNameChange(self)
             self.updateOutFileNames();
+            self.updateAllUiPanelEnable();
         end
 
     
