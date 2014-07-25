@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 24-Jul-2014 18:06:27
+% Last Modified by GUIDE v2.5 25-Jul-2014 13:36:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -87,7 +87,7 @@ function poolEnableCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of poolEnableCheckbox
-handles.impl.setPoolEnable()
+handles.impl.onPoolEnableChange()
 
 
 % --- Executes on selection change in numberOfCoresPopup.
@@ -272,6 +272,7 @@ function orientationHintCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of orientationHintCheckbox
+handles.impl.onOutFileNameChange();
 
 
 % --- Executes on button press in orientationHintFilePushButton.
@@ -295,6 +296,7 @@ function filePrefixEditText_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of filePrefixEditText as text
 %        str2double(get(hObject,'String')) returns contents of filePrefixEditText as a double
+handles.impl.onOutFileNameChange();
 
 
 % --- Executes during object creation, after setting all properties.
@@ -317,6 +319,7 @@ function filePrefixCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of filePrefixCheckbox
+handles.impl.onOutFileNameChange();
 
 
 % --- Executes on button press in autoIncrementCheckbox.
@@ -326,6 +329,7 @@ function autoIncrementCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of autoIncrementCheckbox
+handles.impl.onOutFileNameChange();
 
 
 % --- Executes on button press in addDatetimeCheckbox.
@@ -335,7 +339,7 @@ function addDatetimeCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of addDatetimeCheckbox
-
+handles.impl.onOutFileNameChange();
 
 
 function workingDirEditText_Callback(hObject, eventdata, handles)
@@ -376,3 +380,17 @@ function flySorterTrainingFigure_DeleteFcn(hObject, eventdata, handles)
 
 handles.impl.delete()  % delete before figure is detroyed - as we need
                        % data from graphics objects to save state.
+
+
+% --- Executes on button press in updateDatetimePushButton.
+function updateDatetimePushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to updateDatetimePushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in selectDateTimePushButton.
+function selectDateTimePushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to selectDateTimePushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

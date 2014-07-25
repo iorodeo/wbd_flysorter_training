@@ -17,9 +17,9 @@ classdef FlySorterTrainingImpl < handle
             };
 
         % Output file base names
-        preproDataFileNameBase = 'prepro_data';
-        orientDataFileNameBase = 'orient_data';
-        usrClsDataFileNameBase = 'usrcls_data';
+        preProcessingFileNameBase  = 'prepro';
+        orientationFileNameBase    = 'orient';
+        userClassifierFileNameBase = 'usrcls';
 
         editTextLengthSub = 14; % For setting text length in multi-line textboxes
 
@@ -46,6 +46,7 @@ classdef FlySorterTrainingImpl < handle
         jabbaMiscPath;
         jabbaFileHandlingPath;
 
+        isPoolEnableChecked;
         isFilePrefixChecked;
         isAddDatetimeChecked;
         isAutoIncrementChecked;
@@ -58,12 +59,24 @@ classdef FlySorterTrainingImpl < handle
         haveOrientationData;
         haveUserClassifierData;
 
-        preproDataFileName;
-        orientDataFileName;
-        usrClsDataFileName;
+        preProcessingFileName;
+        orientationFileName;
+        userClassifierFileName;
+
+        preProcessingFileFullPath;
+        orientationFileFullPath;
+        userClassifierFileFullPath;
 
         filePrefix;
 
+
+    end
+
+    properties (Dependent, Access=protected)
+
+        preProcessingOutFileText;
+        orientationOutFileText;
+        userClassifierOutFileText;
 
     end
 
@@ -78,7 +91,15 @@ classdef FlySorterTrainingImpl < handle
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
             self.setAllUiPanelEnable('off')
+
             self.updateAllUiPanelEnable()
+            self.updateOutFileNames()
+
+            % Temporary
+            % -----------------------------------------------------
+            set(self.handles.autoIncrementCheckbox,'Enable','off');
+            % -----------------------------------------------------
+
         end
 
 
@@ -88,9 +109,8 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function setPoolEnable(self)
-            isChecked = get(self.handles.poolEnableCheckbox,'value');
-            if isChecked
+        function onPoolEnableChangle(self)
+            if self.isPoolEnableChecked
                 disp('enable pool')
             else
                 disp('disable pool');
@@ -142,8 +162,10 @@ classdef FlySorterTrainingImpl < handle
 
 
         function clearTraingingData(self)
-            ans = questdlg('Clear all training data selections?', 'Clear Training Data', 'Yes', 'No', 'No');
-            if strcmpi(ans,'Yes')
+            question = 'Clear all training data selections?';
+            dlgTitle = 'Clear Training Data';
+            rsp = questdlg(question, dlgTitle, 'Yes', 'No', 'No');
+            if strcmpi(rsp,'Yes')
                 self.trainingDataDirs = {};
                 self.updateAllUiPanelEnable()
             end
@@ -151,16 +173,24 @@ classdef FlySorterTrainingImpl < handle
 
 
         function runPreProcessing(self)
-            disp('runPreProcessing')
-            disp(self.preproDataFileName)
-            disp(self.orientDataFileName)
-            disp(self.usrClsDataFileName)
-            disp(self.filePrefix)
+            self.setAllUiPanelEnable('off')
+            % need somethine here to make changes take effect ....
+            processTrainingData(self.trainingDataDirs,self.preProcessingFileFullPath);
+            self.updateAllUiPanelEnable()
         end
 
 
         function clearPreProcessing(self)
-            disp('clearPreProcessing');
+            question = sprintf('Delete existing pre-procesed data set %s',self.preProcessingFileName);
+            dlgTitle = 'Clear Pre-Processed Data';
+            rsp = questdlg(question, dlgTitle , 'Yes', 'No', 'No');
+            if strcmpi(rsp,'Yes')
+                % ----------------
+                % TO DO
+                % -----------------
+                disp('deleting pre-processed data - not implemented yet');
+                self.updateAllUiPanelEnable()
+            end
         end
 
 
@@ -194,6 +224,12 @@ classdef FlySorterTrainingImpl < handle
             disp('generateJsonConfigFiles');
         end
 
+
+        function onOutFileNameChange(self)
+            self.updateOutFileNames();
+        end
+
+    
         % Getter/Setter methods for dependent properties
         % ---------------------------------------------------------------------
 
@@ -227,6 +263,11 @@ classdef FlySorterTrainingImpl < handle
             else
                 jabbaFileHandlingPath = [];
             end
+        end
+
+
+        function isPoolEnableChecked = get.isPoolEnableChecked(self)
+            isPoolEnableChecked = get(self.handles.poolEnableCheckbox,'value');
         end
 
 
@@ -279,10 +320,14 @@ classdef FlySorterTrainingImpl < handle
         
 
         function havePreProcessingData = get.havePreProcessingData(self)
-            % ---------
-            % NOT DONE 
-            % ---------
-            havePreProcessingData = false;
+            % -----------------------------------------------------------
+            % NOT DONE  - probably want firmer checks than this
+            % -----------------------------------------------------------
+            if exist(self.preProcessingFileFullPath)
+                havePreProcessingData = true;
+            else
+                havePreProcessingData = false;
+            end
         end
 
 
@@ -299,18 +344,33 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function preproDataFileName = get.preproDataFileName(self)
-            preproDataFileName = self.getOutputFileName(self.preproDataFileNameBase);
+        function preProcessingFileName = get.preProcessingFileName(self)
+            preProcessingFileName = self.getOutputFileName(self.preProcessingFileNameBase);
         end
 
 
-        function orientDataFileName = get.orientDataFileName(self)
-            orientDataFileName = self.getOutputFileName(self.orientDataFileNameBase);
+        function orientationFileName = get.orientationFileName(self)
+            orientationFileName = self.getOutputFileName(self.orientationFileNameBase);
         end
 
 
-        function usrClsDataFileName = get.usrClsDataFileName(self)
-            usrClsDataFileName = self.getOutputFileName(self.usrClsDataFileNameBase);
+        function userClassifierFileName = get.userClassifierFileName(self)
+            userClassifierFileName = self.getOutputFileName(self.userClassifierFileNameBase);
+        end
+
+
+        function preProcessingFileFullPath = get.preProcessingFileFullPath(self)
+            preProcessingFileFullPath = self.addWorkingDirToName(self.preProcessingFileName);
+        end
+
+
+        function orientationFileFullPath = get.orientationFileFullPath(self)
+            orientationFileFullPath = self.addWorkingDirToName(self.orientationFileName);
+        end
+
+
+        function userClassifierFileFullPath = get.userClassifierFileFullPath(self)
+            userClassifierFileFullPath = self.addWorkingDirToName(self.userClassifierFileName);
         end
 
 
@@ -321,6 +381,23 @@ classdef FlySorterTrainingImpl < handle
         
         function set.filePrefix(self, value)
             set(self.handles.filePrefixEditText, 'String', value);
+        end
+
+
+
+        function set.preProcessingOutFileText(self,value)
+            set(self.handles.preProcessingOutFileText,'String',value);
+        end
+
+
+
+        function set.orientationOutFileText(self, value)
+            set(self.handles.orientationOutFileText, 'String', value);
+        end
+
+
+        function set.userClassifierOutFileText(self,value)
+            set(self.handles.userClassifierOutFileText,'String',value);
         end
 
 
@@ -353,6 +430,18 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function updateOutFileNames(self)
+            self.preProcessingOutFileText = self.preProcessingFileName;
+            self.orientationOutFileText = self.orientationFileName;
+            self.userClassifierOutFileText = self.userClassifierFileName;
+        end
+
+
+        function nameWithWorkingDir = addWorkingDirToName(self,name)
+            nameWithWorkingDir = [self.workingDir, filesep, name];
+        end
+
+
         function setJabbaPathText(self)
             self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
         end
@@ -362,6 +451,7 @@ classdef FlySorterTrainingImpl < handle
             self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
         end
 
+
         
         function updateAllUiPanelEnable(self)
             self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
@@ -369,7 +459,7 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
             self.enableUiPanelOnTest(self.handles.selectDataPanel, self.haveJabbaPath & self.haveWorkingDir);
             self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
-            %self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
+            self.enableUiPanelOnTest(self.handles.orientationPanel, self.havePreProcessingData);
             %self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
             %self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
         end
@@ -531,15 +621,19 @@ classdef FlySorterTrainingImpl < handle
             if self.isFilePrefixChecked
                 fileName = sprintf('%s_%s',self.filePrefix,fileName);
             end
-
             if self.isAddDatetimeChecked
-                disp('add datetme checked')
+                currTime = now;
+                dd = datestr(currTime,'dd');
+                mm = datestr(currTime,'mm');
+                yy = datestr(currTime,'yy');
+                HH = datestr(currTime,'HH');
+                MM = datestr(currTime,'MM');
+                dateStamp = sprintf('d_%s-%s-%s_t_%s-%s',dd,mm,yy,HH,MM);
+                fileName = sprintf('%s_%s', fileName, dateStamp);
             end
-
-
             if self.isAutoIncrementChecked
-                disp('auto-increment checked')
             end
+            fileName = sprintf('%s.mat',fileName);
         end
 
 

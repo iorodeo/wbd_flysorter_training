@@ -1,28 +1,25 @@
-function processTrainingData 
+function processTrainingData(trainingDataDirs,outputFileName) 
 % processTrainingData 
 %
 % organizes data found int base training data directory. Saves this information in 
 % to output file.
 
-trainDataBaseDir = 'training_data';
-outputFileName = 'opencvdata.mat';
-
-
-opencvdata = getOpencvData(trainDataBaseDir);
-save(outputFileName, 'opencvdata');
+opencvdata = getOpencvData(trainingDataDirs);
+preProcessingData.opencvdata = opencvdata;
+preProcessingData.traingingDataDirs = trainingDataDirs;
+save(outputFileName,'preProcessingData');
 
 
 % Utility functions
 % ---------------------------------------------------------------------------------------
 
-function opencvdata = getOpencvData(trainDataBaseDir)
+function opencvdata = getOpencvData(trainDataDirs)
 % getOpencvData:
 %
 % Returns structure of opencv data given the base directory for the training data.
 %
 
 % Loop over training data directories
-trainDataDirs = getTrainDataDirs(trainDataBaseDir);
 
 opencvdata = [];
 offk= 0;
