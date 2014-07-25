@@ -2,6 +2,7 @@ classdef FlySorterTrainingImpl < handle
 
 
     properties (Constant)
+        
         rcDir = '.flysorter_training_rc';
         savedStateFileName = 'flysorter_state.mat';
         saveFieldNames = {             ... 
@@ -11,7 +12,15 @@ classdef FlySorterTrainingImpl < handle
             'isFilePrefixChecked',     ...
             'isAutoIncrementChecked',  ...
             'isAddDatetimeChecked',    ...
+            'trainingDataDirs',        ...
+            'filePrefix',              ...
             };
+
+        % Output file base names
+        preproDataFileNameBase = 'prepro_data';
+        orientDataFileNameBase = 'orient_data';
+        usrClsDataFileNameBase = 'usrcls_data';
+
     end
 
 
@@ -19,11 +28,10 @@ classdef FlySorterTrainingImpl < handle
 
         figureHandle = [];
         machineNumCores = 0;
-
-        numMatlabpoolCores = [];
-
+        numMatlabpoolCores = 0;
         jabbaPath = [];
         workingDir = [];
+        trainingDataDirs = {};  
 
     end
 
@@ -47,6 +55,13 @@ classdef FlySorterTrainingImpl < handle
         havePreProcessingData;
         haveOrientationData;
         haveUserClassifierData;
+
+        preproDataFileName;
+        orientDataFileName;
+        usrClsDataFileName;
+
+        filePrefix;
+
 
     end
 
@@ -107,12 +122,37 @@ classdef FlySorterTrainingImpl < handle
 
 
         function selectTrainingData(self)
-            disp('selectTrainingData');
+            userHomeDir = getUserHomeDir();
+            tempDirs = uipickfiles(         ... 
+                'FilterSpec',   userHomeDir,             ...
+                'REFilter',     '^',                     ...
+                'Prompt',       'Select Training Data',  ...
+                'Append',       self.trainingDataDirs,   ...
+                'Output',       'cell'                   ...
+                );
+
+            if isa(tempDirs,'cell') 
+                self.trainingDataDirs = tempDirs(cellfun(@isdir,tempDirs)); 
+                self.updateAllUiPanelEnable()
+            end
         end
 
 
         function clearTraingingData(self)
-            disp('clearTrainingData');
+            ans = questdlg('Clear all training data selections?', 'Clear Training Data', 'Yes', 'No', 'No');
+            if strcmpi(ans,'Yes')
+                self.trainingDataDirs = {};
+                self.updateAllUiPanelEnable()
+            end
+        end
+
+
+        function runPreProcessing(self)
+            disp('runPreProcessing')
+            disp(self.preproDataFileName)
+            disp(self.orientDataFileName)
+            disp(self.usrClsDataFileName)
+            disp(self.filePrefix)
         end
 
 
@@ -120,10 +160,6 @@ classdef FlySorterTrainingImpl < handle
             disp('clearPreProcessing');
         end
 
-
-        function runPreProcessing(self)
-            disp('runPreProcessing')
-        end
 
 
         function clearOrientationTraining(self)
@@ -235,7 +271,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function haveTrainingData = get.haveTrainingData(self)
-            haveTrainingData = false;
+            haveTrainingData = ~isempty(self.trainingDataDirs);
         end
         
 
@@ -252,6 +288,35 @@ classdef FlySorterTrainingImpl < handle
         function haveUserClassifierData = get.haveUserClassifierData(self)
             haveUserClassifierData = fasle;
         end
+
+
+        function preproDataFileName = get.preproDataFileName(self)
+            % NOT DONE
+            preproDataFileName = self.getOutputFileName(self.preproDataFileNameBase);
+        end
+
+
+        function orientDataFileName = get.orientDataFileName(self)
+            % NOT DONE  
+            orientDataFileName = self.getOutputFileName(self.orientDataFileNameBase);
+        end
+
+
+        function usrClsDataFileName = get.usrClsDataFileName(self)
+            % NOT DONE
+            usrClsDataFileName = self.getOutputFileName(self.usrClsDataFileNameBase);
+        end
+
+
+        function filePrefix = get.filePrefix(self)
+            filePrefix = get(self.handles.filePrefixEditText, 'String');
+        end
+
+        
+        function set.filePrefix(self, value)
+            set(self.handles.filePrefixEditText, 'String', value);
+        end
+
 
     end
 
@@ -295,10 +360,8 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
             self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
             self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
-
             self.enableUiPanelOnTest(self.handles.selectDataPanel, self.haveJabbaPath & self.haveWorkingDir);
-
-            %self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
+            self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
             %self.enableUiPanelOnTest(self.handles.orientationTrainingPanel, self.havePreProcessingData);
             %self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
             %self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
@@ -454,6 +517,15 @@ classdef FlySorterTrainingImpl < handle
                 end
             end
         end
+
+
+        function fileName = getOutputFileName(self,baseFileName)
+            fileName = baseFileName;
+            if self.isFilePrefixChecked
+                fileName = sprintf('%s_%s',self.filePrefix,fileName);
+            end
+        end
+        
 
 
     end

@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 18-Jul-2014 16:45:14
+% Last Modified by GUIDE v2.5 24-Jul-2014 18:06:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -376,6 +376,3 @@ function flySorterTrainingFigure_DeleteFcn(hObject, eventdata, handles)
 
 handles.impl.delete()  % delete before figure is detroyed - as we need
                        % data from graphics objects to save state.
-
-
-
