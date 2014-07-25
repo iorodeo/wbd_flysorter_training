@@ -21,6 +21,8 @@ classdef FlySorterTrainingImpl < handle
         orientDataFileNameBase = 'orient_data';
         usrClsDataFileNameBase = 'usrcls_data';
 
+        editTextLengthSub = 14; % For setting text length in multi-line textboxes
+
     end
 
 
@@ -67,6 +69,7 @@ classdef FlySorterTrainingImpl < handle
 
 
 
+    % -----------------------------------------------------------------------------------
     methods 
         
 
@@ -191,7 +194,7 @@ classdef FlySorterTrainingImpl < handle
             disp('generateJsonConfigFiles');
         end
 
-        % Getter/Setters for Dependent properties
+        % Getter/Setter methods for dependent properties
         % ---------------------------------------------------------------------
 
         function handles = get.handles(self)
@@ -276,11 +279,17 @@ classdef FlySorterTrainingImpl < handle
         
 
         function havePreProcessingData = get.havePreProcessingData(self)
+            % ---------
+            % NOT DONE 
+            % ---------
             havePreProcessingData = false;
         end
 
 
         function haveOrientationData = get.haveOrientationData(self)
+            % ---------
+            % NOT DONE
+            % ---------
             haveOrientationData = false;
         end
 
@@ -291,19 +300,16 @@ classdef FlySorterTrainingImpl < handle
 
 
         function preproDataFileName = get.preproDataFileName(self)
-            % NOT DONE
             preproDataFileName = self.getOutputFileName(self.preproDataFileNameBase);
         end
 
 
         function orientDataFileName = get.orientDataFileName(self)
-            % NOT DONE  
             orientDataFileName = self.getOutputFileName(self.orientDataFileNameBase);
         end
 
 
         function usrClsDataFileName = get.usrClsDataFileName(self)
-            % NOT DONE
             usrClsDataFileName = self.getOutputFileName(self.usrClsDataFileNameBase);
         end
 
@@ -322,6 +328,7 @@ classdef FlySorterTrainingImpl < handle
 
 
 
+    % -------------------------------------------------------------------------
     methods (Access=protected)
 
 
@@ -347,12 +354,12 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setJabbaPathText(self)
-            setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
+            self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
         end
 
 
         function setWorkingDirText(self)
-            setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
+            self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
         end
 
         
@@ -524,38 +531,46 @@ classdef FlySorterTrainingImpl < handle
             if self.isFilePrefixChecked
                 fileName = sprintf('%s_%s',self.filePrefix,fileName);
             end
-        end
-        
 
+            if self.isAddDatetimeChecked
+                disp('add datetme checked')
+            end
+
+
+            if self.isAutoIncrementChecked
+                disp('auto-increment checked')
+            end
+        end
+
+
+        function setMultiLineEditText(self, editTextHandle, editTextString)
+            textPosition = get(editTextHandle,'position');
+            editTextLength = textPosition(3) - self.editTextLengthSub;
+            if editTextString
+                editTextCell = {};
+                while length(editTextString) > 0 
+                    if length(editTextString) > editTextLength
+                        subString = editTextString(1:editTextLength);
+                        editTextString = editTextString(editTextLength+1:end);
+                    else
+                        subString = editTextString(1:end);
+                        editTextString = [];
+                    end
+                    editTextCell{length(editTextCell)+1} = subString;
+                end
+            else
+                editTextCell = {'empty'};
+            end 
+            set(editTextHandle,'string',editTextCell);
+        end
 
     end
 
-end
+end  % FlySorterTrainingImpl
 
 
 % Utility Functions
 % -----------------------------------------------------------------------------
-function setMultiLineEditText(editTextHandle, editTextString)
-    textPosition = get(editTextHandle,'position');
-    editTextLength = textPosition(3);
-    if editTextString
-        editTextCell = {};
-        while length(editTextString) > 0 
-            if length(editTextString) > editTextLength
-                subString = editTextString(1:textLegnth);
-                editTextString = editTextString(editTextLength+1,end);
-            else
-                subString = editTextString(1:end);
-                editTextString = [];
-            end
-            editTextCell{length(editTextCell)+1} = subString;
-        end
-    else
-        editTextCell = {'empty'};
-    end 
-    set(editTextHandle,'string',editTextCell);
-end
-
 
 function setUiPanelEnable(panelHandle,value)
     if ~( strcmp(value,'on') || strcmp(value,'off'))
