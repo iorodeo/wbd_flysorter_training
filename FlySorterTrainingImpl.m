@@ -69,21 +69,11 @@ classdef FlySorterTrainingImpl < handle
         orientationFileName;
         userClassifierFileName;
 
+        filePrefix;
         preProcessingFileFullPath;
         orientationFileFullPath;
         userClassifierFileFullPath;
 
-        filePrefix;
-        orientationHintText;
-
-
-    end
-
-    properties (Dependent, Access=protected)
-
-        preProcessingOutFileText;
-        orientationOutFileText;
-        userClassifierOutFileText;
 
     end
 
@@ -412,34 +402,13 @@ classdef FlySorterTrainingImpl < handle
             filePrefix = get(self.handles.filePrefixEditText, 'String');
         end
 
-        
+
         function set.filePrefix(self, value)
             set(self.handles.filePrefixEditText, 'String', value);
         end
 
-        
-        function set.orientationHintText(self,value)
-            set(self.handles.orientationHintText,'String',value);
-        end
-
-
-        function set.preProcessingOutFileText(self,value)
-            set(self.handles.preProcessingOutFileText,'String',value);
-        end
-
-
-        function set.orientationOutFileText(self, value)
-            set(self.handles.orientationOutFileText, 'String', value);
-        end
-
-
-        function set.userClassifierOutFileText(self,value)
-            set(self.handles.userClassifierOutFileText,'String',value);
-        end
-
 
     end
-
 
 
     % -------------------------------------------------------------------------
@@ -447,9 +416,7 @@ classdef FlySorterTrainingImpl < handle
 
         function updateUi(self)
             self.updateAllUiPanelEnable()
-            self.updateOutFileText()
-            self.updateJabbaPathText();
-            self.updateWorkingDirText();
+            self.updateUiText();
 
             % Temporary
             % -----------------------------------------------------
@@ -491,11 +458,22 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
         end
 
+        function updateUiText(self)
 
-        function updateOutFileText(self)
-            self.preProcessingOutFileText = self.getOutFileText(self.preProcessingFileName);
-            self.orientationOutFileText = self.getOutFileText(self.orientationFileName);
-            self.userClassifierOutFileText = self.getOutFileText(self.userClassifierFileName);
+            self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
+            self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
+
+            preProcessingFileNameText = self.getOutFileText(self.preProcessingFileName);
+            set(self.handles.preProcessingOutFileText,'String',self.preProcessingFileName);
+
+            orientationFileNameText = self.getOutFileText(self.orientationFileName);
+            set(self.handles.orientationOutFileText, 'String', self.orientationFileName);
+
+            userClassifierFileText = self.getOutFileText(self.userClassifierFileName);
+            set(self.handles.userClassifierOutFileText,'String',userClassifierFileText);
+
+            hintFileText = self.getHintFileText();
+            set(self.handles.orientationHintText,'String', hintFileText);
         end
 
 
@@ -504,26 +482,19 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function updateOrientationText(self)
-            self.orientationHintText = sprintf('%s %s',self.orientationHintTextLabel,self.orientationHintFile);
+        function hintFileText = getHintFileText(self)
+            if ~isempty(self.orientationHintFile)
+                fileNameText = self.orientationHintFile;
+            else
+                fileNameText = 'none';
+            end
+            hintFileText = sprintf('%s %s', self.orientationHintTextLabel, fileNameText);
         end
 
 
         function nameWithWorkingDir = addWorkingDirToName(self,name)
             nameWithWorkingDir = [self.workingDir, filesep, name];
         end
-
-
-        function updateJabbaPathText(self)
-            self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
-        end
-
-
-        function updateWorkingDirText(self)
-            self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
-        end
-
-        
 
 
         function enableUiPanelOnTest(self, panelHandle, test)
