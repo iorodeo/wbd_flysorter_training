@@ -14,6 +14,7 @@ classdef FlySorterTrainingImpl < handle
             'isAddDatetimeChecked',    ...
             'trainingDataDirs',        ...
             'filePrefix',              ...
+            'orientationHintFile',     ...
             };
 
         % Output file base names
@@ -22,7 +23,9 @@ classdef FlySorterTrainingImpl < handle
         userClassifierFileNameBase = 'usrcls';
 
         editTextLengthSub = 14; % For setting text length in multi-line textboxes
-
+        outFileTextLabel = 'Output File:';
+        orientationHintTextLabel = 'Hint File:';
+        
     end
 
 
@@ -35,6 +38,7 @@ classdef FlySorterTrainingImpl < handle
         workingDir = [];
         datetime = [];
         trainingDataDirs = {};  
+        orientationHintFile = [];
 
     end
 
@@ -69,6 +73,7 @@ classdef FlySorterTrainingImpl < handle
         userClassifierFileFullPath;
 
         filePrefix;
+        orientationHintText;
 
 
     end
@@ -91,16 +96,7 @@ classdef FlySorterTrainingImpl < handle
             self.figureHandle = figureHandle;
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
-            self.setAllUiPanelEnable('off')
-
-            self.updateAllUiPanelEnable()
-            self.updateOutFileNames()
-
-            % Temporary
-            % -----------------------------------------------------
-            set(self.handles.autoIncrementCheckbox,'Enable','off');
-            % -----------------------------------------------------
-
+            self.updateUi();
         end
 
 
@@ -128,8 +124,8 @@ classdef FlySorterTrainingImpl < handle
             startPath = getStartPathForUiGetDir(self.jabbaPath);
             jabbaPathTemp = uigetdir(startPath, 'Select path to JABBA installation');
             if jabbaPathTemp ~= false
-                self.updateJabbaPath(jabbaPathTemp);
-                self.updateAllUiPanelEnable()
+                self.jabbaPath = jabbaPathTemp;
+                self.updateUi();
             end
         end
 
@@ -140,7 +136,8 @@ classdef FlySorterTrainingImpl < handle
             workingDirTemp = uigetdir(startPath, 'Select path to working directory');
             if workingDirTemp ~= false
                 self.updateWorkingDir(workingDirTemp);
-                self.updateAllUiPanelEnable();
+                %self.updateAllUiPanelEnable();
+                self.updateUi();
             end
         end
 
@@ -157,7 +154,8 @@ classdef FlySorterTrainingImpl < handle
 
             if isa(tempDirs,'cell') 
                 self.trainingDataDirs = tempDirs(cellfun(@isdir,tempDirs)); 
-                self.updateAllUiPanelEnable()
+                %self.updateAllUiPanelEnable()
+                self.updateUi();
             end
         end
 
@@ -168,7 +166,8 @@ classdef FlySorterTrainingImpl < handle
             rsp = questdlg(question, dlgTitle, 'Yes', 'No', 'No');
             if strcmpi(rsp,'Yes')
                 self.trainingDataDirs = {};
-                self.updateAllUiPanelEnable()
+                %self.updateAllUiPanelEnable()
+                self.updateUi();
             end
         end
 
@@ -177,7 +176,8 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             % need somethine here to make changes take effect ....
             processTrainingData(self.trainingDataDirs,self.preProcessingFileFullPath);
-            self.updateAllUiPanelEnable()
+            %self.updateAllUiPanelEnable()
+            self.updateUi();
         end
 
 
@@ -190,7 +190,8 @@ classdef FlySorterTrainingImpl < handle
                 % TO DO
                 % -----------------
                 disp('deleting pre-processed data - not implemented yet');
-                self.updateAllUiPanelEnable()
+                %self.updateAllUiPanelEnable()
+                self.updateUi();
             end
         end
 
@@ -199,15 +200,14 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             % need somethine here to make changes take effect ....
             runOrientationTraining(self.preProcessingFileFullPath, self.orientationFileFullPath);
-            self.updateAllUiPanelEnable()
+            %self.updateAllUiPanelEnable()
+            self.updateUi();
         end
 
 
         function clearOrientationTraining(self)
             disp('clearOrientationTraining');
         end
-
-
 
 
         function clearUserClassifierTraining(self)
@@ -241,12 +241,24 @@ classdef FlySorterTrainingImpl < handle
 
 
         function onOutFileNameChange(self)
-            self.updateOutFileNames();
-            self.updateAllUiPanelEnable();
+            %self.updateOutFileText();
+            %self.updateAllUiPanelEnable();
+            self.updateUi();
         end
 
+        % Setter/Getter methods
+        % ---------------------------------------------------------------------
+        function set.jabbaPath(self,value)
+            disp('hello')
+            self.rmJabbaFromMatlabPath();
+            self.jabbaPath = value;
+            self.checkJabbaPath();
+            self.addJabbaToMatlabPath();
+        end
+        
+
     
-        % Getter/Setter methods for dependent properties
+        % Setter/Getter methods for dependent properties
         % ---------------------------------------------------------------------
 
         function handles = get.handles(self)
@@ -336,9 +348,9 @@ classdef FlySorterTrainingImpl < handle
         
 
         function havePreProcessingData = get.havePreProcessingData(self)
-            % -----------------------------------------------------------
-            % NOT DONE  - probably want firmer checks than this
-            % -----------------------------------------------------------
+            % --------------------------------------------------------------
+            % NOT DONE  - might want a firmer check than just file existence 
+            % --------------------------------------------------------------
             if exist(self.preProcessingFileFullPath)
                 havePreProcessingData = true;
             else
@@ -348,10 +360,15 @@ classdef FlySorterTrainingImpl < handle
 
 
         function haveOrientationData = get.haveOrientationData(self)
-            % ---------
-            % NOT DONE
-            % ---------
+            % --------------------------------------------------------------
+            % NOT DONE  - might want a firmer check than just file existence 
+            % --------------------------------------------------------------
             haveOrientationData = false;
+            if exist(self.haveOrientationFileFullPath)
+                haveOrientationData = true;
+            else
+                haveOrientationData = false;
+            end
         end
 
 
@@ -399,12 +416,15 @@ classdef FlySorterTrainingImpl < handle
             set(self.handles.filePrefixEditText, 'String', value);
         end
 
+        
+        function set.orientationHintText(self,value)
+            set(self.handles.orientationHintText,'String',value);
+        end
 
 
         function set.preProcessingOutFileText(self,value)
             set(self.handles.preProcessingOutFileText,'String',value);
         end
-
 
 
         function set.orientationOutFileText(self, value)
@@ -424,19 +444,21 @@ classdef FlySorterTrainingImpl < handle
     % -------------------------------------------------------------------------
     methods (Access=protected)
 
-
-        function updateJabbaPath(self,newJabbaPath)
-            if nargin < 2
-                newJabbaPath = self.jabbaPath;
-            end
-            self.rmJabbaFromMatlabPath();
-            self.jabbaPath = newJabbaPath;
-            self.checkJabbaPath();
-            self.addJabbaToMatlabPath();
+        function updateUi(self)
+            self.updateAllUiPanelEnable()
+            self.updateOutFileText()
             self.setJabbaPathText();
+
+            % Temporary
+            % -----------------------------------------------------
+            set(self.handles.autoIncrementCheckbox,'Enable','off');
+            % -----------------------------------------------------
         end
 
 
+        % ----------------------------------------------------------
+        % TO DO - move to setter/getter ???
+        % ----------------------------------------------------------
         function updateWorkingDir(self,newWorkingDir)
             if nargin == 2
                 self.workingDir = newWorkingDir;
@@ -446,10 +468,20 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function updateOutFileNames(self)
-            self.preProcessingOutFileText = self.preProcessingFileName;
-            self.orientationOutFileText = self.orientationFileName;
-            self.userClassifierOutFileText = self.userClassifierFileName;
+        function updateOutFileText(self)
+            self.preProcessingOutFileText = self.getOutFileText(self.preProcessingFileName);
+            self.orientationOutFileText = self.getOutFileText(self.orientationFileName);
+            self.userClassifierOutFileText = self.getOutFileText(self.userClassifierFileName);
+        end
+
+
+        function outFileText = getOutFileText(self,outFileName)
+            outFileText = sprintf('%s %s',self.outFileTextLabel,outFileName);
+        end
+
+
+        function updateOrientationText(self)
+            self.orientationHintText = sprintf('%s %s',self.orientationHintTextLabel,self.orientationHintFile);
         end
 
 
@@ -467,17 +499,18 @@ classdef FlySorterTrainingImpl < handle
             self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
         end
 
-
         
         function updateAllUiPanelEnable(self)
+            self.enableUiPanelOnTest(self.handles.configurationPanel,true);
+            self.enableUiPanelOnTest(self.handles.trainingPanel,true);
             self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
             self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
             self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
             self.enableUiPanelOnTest(self.handles.selectDataPanel, self.haveJabbaPath & self.haveWorkingDir);
             self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
             self.enableUiPanelOnTest(self.handles.orientationPanel, self.havePreProcessingData);
-            %self.enableUiPanelOnTest(self.handles.genderTrainingPanel, self.haveOrientationData);
-            %self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, self.haveGenderData);
+            self.enableUiPanelOnTest(self.handles.userClassifierPanel, false);
+            self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
         end
 
 
@@ -547,7 +580,6 @@ classdef FlySorterTrainingImpl < handle
                         self.(fieldName) = savedStateStruct.(fieldName);
                     end
                 end
-                self.updateJabbaPath();
                 self.updateWorkingDir();
             else
                 fprintf('no saved state information - using default values\n');
@@ -691,6 +723,7 @@ function setUiPanelEnable(panelHandle,value)
         child = childHandles(i);
         childType = get(child,'Type');
         if strcmpi(childType,'uipanel')
+            disp('hello')
             setUiPanelEnable(child,value)
         else
             set(child,'enable',value);

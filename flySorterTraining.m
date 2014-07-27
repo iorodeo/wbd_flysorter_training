@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 25-Jul-2014 13:46:58
+% Last Modified by GUIDE v2.5 26-Jul-2014 17:55:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -275,9 +275,9 @@ function orientationHintCheckbox_Callback(hObject, eventdata, handles)
 handles.impl.onOutFileNameChange();
 
 
-% --- Executes on button press in orientationHintFilePushButton.
-function orientationHintFilePushButton_Callback(hObject, eventdata, handles)
-% hObject    handle to orientationHintFilePushButton (see GCBO)
+% --- Executes on button press in orientationHintPushButton.
+function orientationHintPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationHintPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -396,3 +396,17 @@ function selectDateTimePushButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.setDatetimeWithGui();
+
+
+% --- Executes on button press in orientationParamPushbutton.
+function orientationParamPushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to orientationParamPushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in userClassifierParamPushButton.
+function userClassifierParamPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to userClassifierParamPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
