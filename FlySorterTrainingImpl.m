@@ -31,6 +31,7 @@ classdef FlySorterTrainingImpl < handle
 
     properties
 
+        haveRcDir = true;
         figureHandle = [];
         machineNumCores = 0;
         numMatlabpoolCores = 0;
@@ -131,12 +132,10 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setWorkingDirWithGui(self)
-            disp('setWorkingDirWithGui');
             startPath = getStartPathForUiGetDir(self.workingDir);
             workingDirTemp = uigetdir(startPath, 'Select path to working directory');
             if workingDirTemp ~= false
-                self.updateWorkingDir(workingDirTemp);
-                %self.updateAllUiPanelEnable();
+                self.workingDir = workingDirTemp;
                 self.updateUi();
             end
         end
@@ -154,7 +153,6 @@ classdef FlySorterTrainingImpl < handle
 
             if isa(tempDirs,'cell') 
                 self.trainingDataDirs = tempDirs(cellfun(@isdir,tempDirs)); 
-                %self.updateAllUiPanelEnable()
                 self.updateUi();
             end
         end
@@ -166,7 +164,6 @@ classdef FlySorterTrainingImpl < handle
             rsp = questdlg(question, dlgTitle, 'Yes', 'No', 'No');
             if strcmpi(rsp,'Yes')
                 self.trainingDataDirs = {};
-                %self.updateAllUiPanelEnable()
                 self.updateUi();
             end
         end
@@ -176,7 +173,6 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             % need somethine here to make changes take effect ....
             processTrainingData(self.trainingDataDirs,self.preProcessingFileFullPath);
-            %self.updateAllUiPanelEnable()
             self.updateUi();
         end
 
@@ -190,7 +186,6 @@ classdef FlySorterTrainingImpl < handle
                 % TO DO
                 % -----------------
                 disp('deleting pre-processed data - not implemented yet');
-                %self.updateAllUiPanelEnable()
                 self.updateUi();
             end
         end
@@ -200,7 +195,6 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             % need somethine here to make changes take effect ....
             runOrientationTraining(self.preProcessingFileFullPath, self.orientationFileFullPath);
-            %self.updateAllUiPanelEnable()
             self.updateUi();
         end
 
@@ -241,21 +235,28 @@ classdef FlySorterTrainingImpl < handle
 
 
         function onOutFileNameChange(self)
-            %self.updateOutFileText();
-            %self.updateAllUiPanelEnable();
             self.updateUi();
         end
 
         % Setter/Getter methods
         % ---------------------------------------------------------------------
+
         function set.jabbaPath(self,value)
-            disp('hello')
             self.rmJabbaFromMatlabPath();
-            self.jabbaPath = value;
-            self.checkJabbaPath();
-            self.addJabbaToMatlabPath();
+            if self.checkJabbaPath(value)
+                self.jabbaPath = value;
+                self.addJabbaToMatlabPath();
+            end
         end
-        
+
+
+        function set.workingDir(self,value)
+            if self.checkWorkingDir(value);
+                self.workingDir = value;
+            else
+                self.workingDir = [];
+            end
+        end
 
     
         % Setter/Getter methods for dependent properties
@@ -278,7 +279,7 @@ classdef FlySorterTrainingImpl < handle
 
         function jabbaMiscPath = get.jabbaMiscPath(self)
             if self.jabbaPath
-                jabbaMiscPath = [self.jabbaPath, filesep, 'misc'];
+                jabbaMiscPath = getMiscPath(self.jabbaPath);
             else
                 jabbaMiscPath = [];
             end
@@ -287,7 +288,7 @@ classdef FlySorterTrainingImpl < handle
 
         function jabbaFileHandlingPath = get.jabbaFileHandlingPath(self)
             if self.jabbaPath
-                jabbaFileHandlingPath = [self.jabbaPath, filesep, 'filehandling'];
+                jabbaFileHandlingPath = getFileHandlingPath(self.jabbaPath);
             else
                 jabbaFileHandlingPath = [];
             end
@@ -447,7 +448,8 @@ classdef FlySorterTrainingImpl < handle
         function updateUi(self)
             self.updateAllUiPanelEnable()
             self.updateOutFileText()
-            self.setJabbaPathText();
+            self.updateJabbaPathText();
+            self.updateWorkingDirText();
 
             % Temporary
             % -----------------------------------------------------
@@ -456,15 +458,37 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        % ----------------------------------------------------------
-        % TO DO - move to setter/getter ???
-        % ----------------------------------------------------------
-        function updateWorkingDir(self,newWorkingDir)
-            if nargin == 2
-                self.workingDir = newWorkingDir;
+        function updateAllUiPanelEnable(self)
+            if ~self.haveRcDir
+                return;
             end
-            self.checkWorkingDir();
-            self.setWorkingDirText();
+            % Configuration Panel
+            self.enableUiPanelOnTest(self.handles.configurationPanel,true);
+            self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
+            self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
+            self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
+
+            % Training Panel
+            enableTest = true;
+            self.enableUiPanelOnTest(self.handles.trainingPanel,enableTest);
+
+            %  - Select data subpanel
+            enableTest = enableTest & self.haveJabbaPath & self.haveWorkingDir;
+            self.enableUiPanelOnTest(self.handles.selectDataPanel,enableTest);
+
+            %  - Preprocessing subpanel
+            enableTest = enableTest & self.haveTrainingData;
+            self.enableUiPanelOnTest(self.handles.preProcessingPanel, enableTest);
+
+            %  - Orientation subpanel
+            enableTest = enableTest & self.havePreProcessingData;
+            self.enableUiPanelOnTest(self.handles.orientationPanel, enableTest);
+
+            %  - User Classifier subpanel
+            self.enableUiPanelOnTest(self.handles.userClassifierPanel, false);
+
+            %  - Generate Flysorter Files subpanel
+            self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
         end
 
 
@@ -490,28 +514,16 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function setJabbaPathText(self)
+        function updateJabbaPathText(self)
             self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
         end
 
 
-        function setWorkingDirText(self)
+        function updateWorkingDirText(self)
             self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
         end
 
         
-        function updateAllUiPanelEnable(self)
-            self.enableUiPanelOnTest(self.handles.configurationPanel,true);
-            self.enableUiPanelOnTest(self.handles.trainingPanel,true);
-            self.enableUiPanelOnTest(self.handles.matlabpoolPanel, self.haveMatlabpool);
-            self.enableUiPanelOnTest(self.handles.jabbaPathPanel, true);
-            self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
-            self.enableUiPanelOnTest(self.handles.selectDataPanel, self.haveJabbaPath & self.haveWorkingDir);
-            self.enableUiPanelOnTest(self.handles.preProcessingPanel, self.haveTrainingData);
-            self.enableUiPanelOnTest(self.handles.orientationPanel, self.havePreProcessingData);
-            self.enableUiPanelOnTest(self.handles.userClassifierPanel, false);
-            self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
-        end
 
 
         function enableUiPanelOnTest(self, panelHandle, test)
@@ -547,13 +559,20 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function checkForRcDir(self)
+        function haveRcDir = checkForRcDir(self,showDlg)
             % Checks for existance of resources directory - creates if not found.
+            if nargin < 2
+                showDlg = true;
+            end
+            haveRcDir = true;
             if ~exist(self.rcDirFullPath,'dir')
                 fprintf('%s does not exist creating\n', self.rcDirFullPath);
                 [status, message, ~] = mkdir(getUserHomeDir(), self.rcDir);
-                if ~status
-                    error('unable to create rc directory %s', message);
+                if ~status & showDlg
+                    haveRcDir = false;
+                    errorMsg = sprintf('unable to create rc directory %s', message);
+                    h = errordlg(errorMsg, 'Rsesource Error', 'modal');
+                    uiwait(h);
                 end
             end
         end
@@ -561,7 +580,10 @@ classdef FlySorterTrainingImpl < handle
 
         function loadStateFromRcDir(self)
             % Get saved state information from file in rc directory
-            self.checkForRcDir();
+            self.haveRcDir = self.checkForRcDir();
+            if ~self.haveRcDir;
+                return;
+            end
             haveSavedStateData = false;
             savedStateStruct = [];
             if exist(self.savedStateFullPath,'file')
@@ -580,7 +602,6 @@ classdef FlySorterTrainingImpl < handle
                         self.(fieldName) = savedStateStruct.(fieldName);
                     end
                 end
-                self.updateWorkingDir();
             else
                 fprintf('no saved state information - using default values\n');
             end
@@ -597,23 +618,25 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-
-        function checkJabbaPath(self)
-            if self.haveJabbaPath
-                jabbaPathOk = true;
+        function jabbaPathOk = checkJabbaPath(self,jabbaPath,showDlg)
+            if nargin < 3
+                showDlg = true;
+            end
+            jabbaPathOk = true;
+            if ~isempty(jabbaPath)
                 errorMsg = '';
-                if ~exist(self.jabbaPath,'dir')
+                if ~exist(jabbaPath,'dir')
                     jabbaPathOk = false;
-                    errorMsg = sprintf('JABBA path does not exist - %s', self.jabbaPath);
+                    errorMsg = sprintf('JABBA path does not exist - %s', jabbaPath);
                 else
-                    % Check for misc and filehandling sub-directories as we are going to add 
-                    % these to the matlab path.
-                    fileHandlingDir = [self.jabbaPath, filesep, 'filehandling'];
-                    if ~exist(self.jabbaMiscPath,'dir')
+                    % Check for jabba subdirectories misc and filehandling 
+                    jabbaMiscPath = getMiscPath(jabbaPath);
+                    if ~exist(jabbaMiscPath,'dir')
                         jabbaPathOk = false;
                         errorMsg = 'JABBA sub-directory "misc" is missing';
                     end
-                    if ~exist(self.jabbaFileHandlingPath,'dir')
+                    jabbaFileHandlingPath = getFileHandlingPath(jabbaPath);
+                    if ~exist(jabbaFileHandlingPath,'dir')
                         jabbaPathOk = false;
                         errorMsgTmp = 'JABBA sub-directgory "filehandling" is missing';
                         if isempty(errorMsg)
@@ -623,7 +646,7 @@ classdef FlySorterTrainingImpl < handle
                         end
                     end
                 end 
-                if ~jabbaPathOk 
+                if ~jabbaPathOk  & showDlg
                     self.jabbaPath = [];
                     h = errordlg(errorMsg, 'JABBA Path Error', 'modal');
                     uiwait(h);
@@ -632,13 +655,19 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function checkWorkingDir(self)
-            if self.haveWorkingDir
-                if ~exist(self.workingDir)
-                    self.workingDir = [];
-                    errorMsg = 'Working Directory does not exist!';
-                    h = warndlg(errorMsg, 'FlySorter Working Directory Warning', 'modal');
-                    uiwait(h);
+        function ok = checkWorkingDir(self,workingDir,showDlg)
+            if nargin < 3
+                showDlg = true;
+            end
+            ok = true;
+            if ~isempty(workingDir)
+                if ~exist(workingDir)
+                    ok = false;
+                    if showDlg
+                        errorMsg = sprintf('Working Directory, %s, does not exist!', workingDir);
+                        h = warndlg(errorMsg, 'FlySorter Working Directory Warning', 'modal');
+                        uiwait(h);
+                    end
                 end
             end
         end
@@ -773,6 +802,21 @@ function startPath = getStartPathForUiGetDir(currPath)
             end
         end
     end
+end
+
+
+function newFilePath = appendToFilePath(filePath, item)
+    newFilePath = [filePath,filesep,item];
+end
+
+
+function miscPath = getMiscPath(basePath)
+    miscPath = appendToFilePath(basePath, 'misc');
+end
+
+
+function fileHandlingPath = getFileHandlingPath(basePath)
+    fileHandlingPath = appendToFilePath(basePath,'filehandling');
 end
 
 
