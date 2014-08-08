@@ -65,7 +65,7 @@ for dirNum = 1:numel(trainDataDirs)
     for fileNum = 1:numel(datFiles)
 
         fileName = datFiles(fileNum).name;
-        %fprintf('  %s\n',fileName);
+        fprintf('  %s\n',fileName);
         
         isPosData = false;
         posDataInfo = [];

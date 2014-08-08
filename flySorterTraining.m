@@ -272,7 +272,7 @@ function orientationHintCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of orientationHintCheckbox
-handles.impl.onOutFileNameChange();
+handles.impl.onOutputFileNameChange();
 
 
 % --- Executes on button press in orientationHintPushButton.
@@ -280,6 +280,7 @@ function orientationHintPushButton_Callback(hObject, eventdata, handles)
 % hObject    handle to orientationHintPushButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.impl.setOrientationHintFileWithGui();
 
 
 % --- Executes on button press in pushbutton32.
@@ -296,7 +297,7 @@ function filePrefixEditText_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of filePrefixEditText as text
 %        str2double(get(hObject,'String')) returns contents of filePrefixEditText as a double
-handles.impl.onOutFileNameChange();
+handles.impl.onOutputFileNameChange();
 
 
 % --- Executes during object creation, after setting all properties.
@@ -319,7 +320,7 @@ function filePrefixCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of filePrefixCheckbox
-handles.impl.onOutFileNameChange();
+handles.impl.onOutputFileNameChange();
 
 
 % --- Executes on button press in autoIncrementCheckbox.
@@ -329,7 +330,7 @@ function autoIncrementCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of autoIncrementCheckbox
-handles.impl.onOutFileNameChange();
+handles.impl.onOutputFileNameChange();
 
 
 % --- Executes on button press in addDatetimeCheckbox.
@@ -339,7 +340,7 @@ function addDatetimeCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of addDatetimeCheckbox
-handles.impl.onOutFileNameChange();
+handles.impl.onOutputFileNameChange();
 
 
 function workingDirEditText_Callback(hObject, eventdata, handles)
@@ -403,6 +404,7 @@ function orientationParamPushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to orientationParamPushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.impl.setOrientationParamFileWithGui();
 
 
 % --- Executes on button press in userClassifierParamPushButton.

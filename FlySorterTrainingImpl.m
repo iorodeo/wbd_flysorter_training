@@ -13,8 +13,10 @@ classdef FlySorterTrainingImpl < handle
             'isAutoIncrementChecked',  ...
             'isAddDatetimeChecked',    ...
             'trainingDataDirs',        ...
+            'trainingDataDateNumber',  ...
             'filePrefix',              ...
             'orientationHintFile',     ...
+            'fileNameDateNumber',          ... 
             };
 
         % Output file base names
@@ -37,9 +39,10 @@ classdef FlySorterTrainingImpl < handle
         numMatlabpoolCores = 0;
         jabbaPath = [];
         workingDir = [];
-        datetime = [];
         trainingDataDirs = {};  
+        trainingDataDateNumber = [];
         orientationHintFile = [];
+        fileNameDateNumber = [];
 
     end
 
@@ -56,6 +59,7 @@ classdef FlySorterTrainingImpl < handle
         isFilePrefixChecked;
         isAddDatetimeChecked;
         isAutoIncrementChecked;
+        isOrientationHintFileChecked;
 
         haveMatlabpool;
         haveJabbaPath;
@@ -73,6 +77,10 @@ classdef FlySorterTrainingImpl < handle
         preProcessingFileFullPath;
         orientationFileFullPath;
         userClassifierFileFullPath;
+
+        fileNameDateTimeStr;
+        trainingDataDateTimeStr;
+        preProcessingDateTimeStr;
 
 
     end
@@ -142,7 +150,11 @@ classdef FlySorterTrainingImpl < handle
                 );
 
             if isa(tempDirs,'cell') 
-                self.trainingDataDirs = tempDirs(cellfun(@isdir,tempDirs)); 
+                trainingDataDirs = tempDirs(cellfun(@isdir,tempDirs)); 
+                if ~isequal(trainingDataDirs, self.trainingDataDirs)
+                    self.trainingDataDirs = trainingDataDirs;
+                    self.trainingDataDateNumber = now();
+                end
                 self.updateUi();
             end
         end
@@ -154,6 +166,7 @@ classdef FlySorterTrainingImpl < handle
             rsp = questdlg(question, dlgTitle, 'Yes', 'No', 'No');
             if strcmpi(rsp,'Yes')
                 self.trainingDataDirs = {};
+                self.trainingDataDateNumber = [];
                 self.updateUi();
             end
         end
@@ -161,6 +174,8 @@ classdef FlySorterTrainingImpl < handle
 
         function runPreProcessing(self)
             self.setAllUiPanelEnable('off')
+            self.updateStatusBarText('Running Pre-Processing');
+            drawnow;
             % need somethine here to make changes take effect ....
             processTrainingData(self.trainingDataDirs,self.preProcessingFileFullPath);
             self.updateUi();
@@ -172,13 +187,23 @@ classdef FlySorterTrainingImpl < handle
             dlgTitle = 'Clear Pre-Processed Data';
             rsp = questdlg(question, dlgTitle , 'Yes', 'No', 'No');
             if strcmpi(rsp,'Yes')
-                % ----------------
-                % TO DO
-                % -----------------
-                disp('deleting pre-processed data - not implemented yet');
+                delete(self.preProcessingFileFullPath);
                 self.updateUi();
             end
+
         end
+
+
+        function setOrientationHintFileWithGui(self)
+            disp('setOrientationHintFileWithGui');
+            self.isOrientationHintFileChecked
+        end
+
+
+        function setOrientationParamFileWithGui(self)
+            disp('setOrientationParamFileWithGui')
+        end
+
 
         function runOrientationTraining(self)
             disp('runOrientationTraining');
@@ -215,16 +240,20 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setDatetimeToNow(self)
-            disp('setDatetimeToNow');
+            self.fileNameDateNumber = now();
+            self.updateUi();
         end
 
 
         function setDatetimeWithGui(self)
-            disp('setDatetimeWithGui');
+            fileNameDateNumber = uigetdate(self.fileNameDateNumber);
+            if ~isempty(fileNameDateNumber)
+                self.fileNameDateNumber = fileNameDateNumber;
+            end
         end
 
 
-        function onOutFileNameChange(self)
+        function onOutputFileNameChange(self)
             self.updateUi();
         end
 
@@ -315,6 +344,10 @@ classdef FlySorterTrainingImpl < handle
 
         function set.isAutoIncrementChecked(self,value)
             set(self.handles.autoIncrementCheckbox, 'value', value);
+        end
+
+        function isOrientationHintFileChecked = get.isOrientationHintFileChecked(self)
+            isOrientationHintFileChecked = get(self.handles.orientationHintCheckbox,'Value');
         end
 
 
@@ -408,6 +441,22 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function fileNameDateTimeStr = get.fileNameDateTimeStr(self) 
+            fileNameDateTimeStr = self.getDateTimeStrForFileName(self.fileNameDateNumber);
+        end
+
+
+        function trainingDataDateTimeStr = get.trainingDataDateTimeStr(self)
+            trainingDataDateTimeStr = self.getDateTimeStrForGui(self.trainingDataDateNumber);
+        end
+
+
+        function preProcessingDateTimeStr = get.preProcessingDateTimeStr(self)
+            modDateNumber = getFileModDateNumber(self.preProcessingFileFullPath);
+            preProcessingDateTimeStr = self.getDateTimeStrForGui(modDateNumber);
+        end
+
+
     end
 
 
@@ -436,7 +485,7 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.outputFilesPanel, true);
 
             % Training Panel
-            enableTest = true;
+            enableTest = self.haveWorkingDir & self.haveJabbaPath;
             self.enableUiPanelOnTest(self.handles.trainingPanel,enableTest);
 
             %  - Select data subpanel
@@ -458,30 +507,67 @@ classdef FlySorterTrainingImpl < handle
             self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
         end
 
+
         function updateUiText(self)
 
+            % JABBA path panel
             self.setMultiLineEditText(self.handles.jabbaPathEditText, self.jabbaPath);
+
+            % Working dir panel
             self.setMultiLineEditText(self.handles.workingDirEditText, self.workingDir);
+            set(self.handles.dateTimeText, 'String', self.fileNameDateTimeStr);
 
-            preProcessingFileNameText = self.getOutFileText(self.preProcessingFileName);
+            % Select data panel
+            set(self.handles.selectDataDateTimeText,'String', self.trainingDataDateTimeStr);
+
+
+            % Preprocessing panel
+            preProcessingFileNameText = self.getOutputFileText(self.preProcessingFileName);
             set(self.handles.preProcessingOutFileText,'String',self.preProcessingFileName);
+            set(self.handles.preProcessingDateTimeText, 'String', self.preProcessingDateTimeStr);
 
-            orientationFileNameText = self.getOutFileText(self.orientationFileName);
-            set(self.handles.orientationOutFileText, 'String', self.orientationFileName);
-
-            userClassifierFileText = self.getOutFileText(self.userClassifierFileName);
-            set(self.handles.userClassifierOutFileText,'String',userClassifierFileText);
-
+            % Orientation training panel
             hintFileText = self.getHintFileText();
             set(self.handles.orientationHintText,'String', hintFileText);
+
+            orientationFileNameText = self.getOutputFileText(self.orientationFileName);
+            set(self.handles.orientationOutFileText, 'String', self.orientationFileName);
+
+            % User classifier training panel
+            userClassifierFileText = self.getOutputFileText(self.userClassifierFileName);
+            set(self.handles.userClassifierOutFileText,'String',userClassifierFileText);
+
+
+            self.updateStatusBarText();
         end
 
 
-        function outFileText = getOutFileText(self,outFileName)
+        function updateStatusBarText(self,statusBarMsg)
+            if nargin < 2
+                if ~self.haveJabbaPath & ~self.haveWorkingDir
+                   statusBarMsg = 'Set JABBA Path and Working Directory';
+                elseif ~self.haveJabbaPath
+                    statusBarMsg = 'Set JABBA Path';
+                elseif ~self.haveWorkingDir
+                    statusBarMsg = 'Set Working Directory';
+                elseif ~self.haveTrainingData
+                    statusBarMsg = 'Select Training Data';
+                else
+                    statusBarMsg = 'Ready';
+                end
+            end
+            set(self.handles.statusBarText,'String',statusBarMsg);
+        end
+
+
+        function outFileText = getOutputFileText(self,outFileName)
             outFileText = sprintf('%s %s',self.outFileTextLabel,outFileName);
         end
 
 
+
+        % TO DO -- change to property
+        % ------------------------------------------------------------------------------
         function hintFileText = getHintFileText(self)
             if ~isempty(self.orientationHintFile)
                 fileNameText = self.orientationHintFile;
@@ -490,6 +576,9 @@ classdef FlySorterTrainingImpl < handle
             end
             hintFileText = sprintf('%s %s', self.orientationHintTextLabel, fileNameText);
         end
+        % --------------------------------------------------------------------------------
+
+
 
 
         function nameWithWorkingDir = addWorkingDirToName(self,name)
@@ -550,6 +639,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function loadStateFromRcDir(self)
+
             % Get saved state information from file in rc directory
             self.haveRcDir = self.checkForRcDir();
             if ~self.haveRcDir;
@@ -565,6 +655,7 @@ classdef FlySorterTrainingImpl < handle
                     haveSavedStateData = true;
                 end
             end
+
             % Set field values using saved state data
             if haveSavedStateData
                 for i=1:numel(self.saveFieldNames)
@@ -575,6 +666,11 @@ classdef FlySorterTrainingImpl < handle
                 end
             else
                 fprintf('no saved state information - using default values\n');
+            end
+
+            % Set dateNumber to now if is empty
+            if isempty(self.fileNameDateNumber)
+                self.fileNameDateNumber = now();
             end
         end
 
@@ -667,17 +763,12 @@ classdef FlySorterTrainingImpl < handle
         function fileName = getOutputFileName(self,baseFileName)
             fileName = baseFileName;
             if self.isFilePrefixChecked
-                fileName = sprintf('%s_%s',self.filePrefix,fileName);
+                if ~isempty(self.filePrefix)
+                    fileName = sprintf('%s_%s',self.filePrefix,fileName);
+                end
             end
             if self.isAddDatetimeChecked
-                currTime = now;
-                dd = datestr(currTime,'dd');
-                mm = datestr(currTime,'mm');
-                yy = datestr(currTime,'yy');
-                HH = datestr(currTime,'HH');
-                MM = datestr(currTime,'MM');
-                dateStamp = sprintf('d_%s-%s-%s_t_%s-%s',dd,mm,yy,HH,MM);
-                fileName = sprintf('%s_%s', fileName, dateStamp);
+                fileName = sprintf('%s_%s', fileName, self.fileNameDateTimeStr);
             end
             if self.isAutoIncrementChecked
             end
@@ -706,7 +797,33 @@ classdef FlySorterTrainingImpl < handle
             set(editTextHandle,'string',editTextCell);
         end
 
+
+        function dateTimeStr = getDateTimeStrForGui(self,dateNumber)
+            if isempty(dateNumber)
+                dateTimeStr = '<empty>';
+            else 
+                dd = datestr(dateNumber,'dd');
+                mm = datestr(dateNumber,'mm');
+                yy = datestr(dateNumber,'yy');
+                HH = datestr(dateNumber,'HH');
+                MM = datestr(dateNumber,'MM');
+                SS = datestr(dateNumber,'SS');
+                dateTimeStr = sprintf('%s/%s/%s %s:%s:%s',dd,mm,yy,HH,MM,SS);
+            end
+        end
+
+
+        function dateTimeStr = getDateTimeStrForFileName(self,dateNumber)
+            dd = datestr(dateNumber,'dd');
+            mm = datestr(dateNumber,'mm');
+            yy = datestr(dateNumber,'yy');
+            HH = datestr(dateNumber,'HH');
+            MM = datestr(dateNumber,'MM');
+            dateTimeStr = sprintf('date_%s-%s-%s_time_%s-%s',mm,dd,yy,HH,MM);
+        end
+
     end
+
 
 end  % FlySorterTrainingImpl
 
@@ -791,4 +908,10 @@ function fileHandlingPath = getFileHandlingPath(basePath)
 end
 
 
-
+function dateNumber = getFileModDateNumber(fileName) 
+    dateNumber = [];
+    if exist(fileName)
+        fileData = dir(fileName);
+        dateNumber = fileData.datenum;
+    end
+end
