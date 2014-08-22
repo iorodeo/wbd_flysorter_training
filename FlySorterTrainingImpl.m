@@ -5,18 +5,19 @@ classdef FlySorterTrainingImpl < handle
         
         rcDir = '.flysorter_training_rc';
         savedStateFileName = 'flysorter_state.mat';
-        saveFieldNames = {             ... 
-            'numMatlabpoolCores',      ...
-            'jabbaPath',               ...
-            'workingDir',              ...
-            'isFilePrefixChecked',     ...
-            'isAutoIncrementChecked',  ...
-            'isAddDatetimeChecked',    ...
-            'trainingDataDirs',        ...
-            'trainingDataDateNumber',  ...
-            'filePrefix',              ...
-            'orientationHintFile',     ...
-            'fileNameDateNumber',          ... 
+        saveFieldNames = {              ... 
+            'numMatlabpoolCores',       ...
+            'jabbaPath',                ...
+            'workingDir',               ...
+            'isFilePrefixChecked',      ...
+            'isAutoIncrementChecked',   ...
+            'isAddDatetimeChecked',     ...
+            'trainingDataDirs',         ...
+            'trainingDataDateNumber',   ...
+            'filePrefix',               ...
+            'orientationHintFileName',  ...
+            'fileNameDateNumber',       ... 
+            'orientationParamFileName', ...
             };
 
         % Output file base names
@@ -26,7 +27,19 @@ classdef FlySorterTrainingImpl < handle
 
         editTextLengthSub = 14; % For setting text length in multi-line textboxes
         outFileTextLabel = 'Output File:';
+
         orientationHintTextLabel = 'Hint File:';
+        orientationParamTextLabel = 'Param File:';
+        orientationParamFieldNames = {   ... 
+            'closeRadius',               ...
+            'openArea',                  ...
+            'maximumArea',               ...
+            'minimumArea',               ...
+            'padBorder',                 ...
+            'method',                    ...
+            'nlearn',                    ...
+            'learners',                  ...
+            };
         
     end
 
@@ -37,12 +50,14 @@ classdef FlySorterTrainingImpl < handle
         figureHandle = [];
         machineNumCores = 0;
         numMatlabpoolCores = 0;
+        jsonLabPath = []
         jabbaPath = [];
         workingDir = [];
+        fileNameDateNumber = [];
         trainingDataDirs = {};  
         trainingDataDateNumber = [];
-        orientationHintFile = [];
-        fileNameDateNumber = [];
+        orientationHintFileName = [];
+        orientationParamFileName = [];
 
     end
 
@@ -67,6 +82,7 @@ classdef FlySorterTrainingImpl < handle
         haveTrainingData;
         havePreProcessingData;
         haveOrientationData;
+        haveOrientationParam;
         haveUserClassifierData;
 
         preProcessingFileName;
@@ -82,9 +98,9 @@ classdef FlySorterTrainingImpl < handle
         trainingDataDateTimeStr;
         preProcessingDateTimeStr;
 
+        orientationParamPath;
 
     end
-
 
 
     % -----------------------------------------------------------------------------------
@@ -93,6 +109,7 @@ classdef FlySorterTrainingImpl < handle
 
         function self = FlySorterTrainingImpl(figureHandle)
             self.figureHandle = figureHandle;
+            self.addJsonLabToMatlabPath()
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
             self.updateUi();
@@ -102,6 +119,7 @@ classdef FlySorterTrainingImpl < handle
         function delete(self)
             self.saveStateToRcDir();
             self.rmJabbaFromMatlabPath();
+            self.rmJsonLabFromMatlabPath();
         end
 
 
@@ -125,7 +143,10 @@ classdef FlySorterTrainingImpl < handle
             if jabbaPathTemp ~= false
                 self.jabbaPath = jabbaPathTemp;
                 self.updateUi();
+            else
+                self.jabbaPath = [];
             end
+            self.updateUi();
         end
 
 
@@ -135,7 +156,10 @@ classdef FlySorterTrainingImpl < handle
             if workingDirTemp ~= false
                 self.workingDir = workingDirTemp;
                 self.updateUi();
+            else
+                self.workingDir = [];
             end
+            self.updateUi();
         end
 
 
@@ -155,8 +179,8 @@ classdef FlySorterTrainingImpl < handle
                     self.trainingDataDirs = trainingDataDirs;
                     self.trainingDataDateNumber = now();
                 end
-                self.updateUi();
             end
+            self.updateUi();
         end
 
 
@@ -196,19 +220,32 @@ classdef FlySorterTrainingImpl < handle
 
         function setOrientationHintFileWithGui(self)
             disp('setOrientationHintFileWithGui');
-            self.isOrientationHintFileChecked
+            %self.isOrientationHintFileChecked
         end
 
 
         function setOrientationParamFileWithGui(self)
-            disp('setOrientationParamFileWithGui')
+            filterSpec = [self.orientationParamPath,filesep,'*.json'];
+            [fileName, pathName] = uigetfile(filterSpec,'Select Orientation Parameter File');
+            self.orientationParamFileName = [];
+            if fileName ~= 0
+                fullPathName = [pathName,filesep,fileName];
+                if exist(fullPathName)
+                    self.orientationParamFileName = fullPathName;
+                    orientationParam = self.loadOrientationParam(); % Test
+                    if isempty(orientationParam)
+                        self.orientationParamFileName = [];
+                    end
+                end
+            end
+            self.updateUi();
         end
 
 
         function runOrientationTraining(self)
-            disp('runOrientationTraining');
             self.setAllUiPanelEnable('off')
-            % need somethine here to make changes take effect ....
+            self.updateStatusBarText('Running Orientation Training');
+            drawnow;
             runOrientationTraining(self.preProcessingFileFullPath, self.orientationFileFullPath);
             self.updateUi();
         end
@@ -396,6 +433,25 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function haveOrientationParam = get.haveOrientationParam(self)
+            haveOrientationParam = false;
+            if ~isempty(self.orientationParamFileName)
+                haveOrientationParam = true;
+            end
+        end
+
+
+        function orientationParamPath = get.orientationParamPath(self)
+            orientationParamPath = self.workingDir;
+            if ~isempty(self.orientationParamFileName)
+                [pathStr, fileName, fileExt] = fileparts(self.orientationParamFileName);
+                if exist(pathStr)
+                    orientationParamPath = pathStr;
+                end
+            end
+        end
+
+
         function haveUserClassifierData = get.haveUserClassifierData(self)
             haveUserClassifierData = fasle;
         end
@@ -499,6 +555,11 @@ classdef FlySorterTrainingImpl < handle
             %  - Orientation subpanel
             enableTest = enableTest & self.havePreProcessingData;
             self.enableUiPanelOnTest(self.handles.orientationPanel, enableTest);
+            if self.haveOrientationParam
+                set(self.handles.orientationRunPushButton,'Enable', 'on');
+            else
+                set(self.handles.orientationRunPushButton,'Enable', 'off');
+            end
 
             %  - User Classifier subpanel
             self.enableUiPanelOnTest(self.handles.userClassifierPanel, false);
@@ -527,8 +588,11 @@ classdef FlySorterTrainingImpl < handle
             set(self.handles.preProcessingDateTimeText, 'String', self.preProcessingDateTimeStr);
 
             % Orientation training panel
-            hintFileText = self.getHintFileText();
+            hintFileText = self.getInputFileText(self.orientationHintTextLabel, self.orientationHintFileName);
             set(self.handles.orientationHintText,'String', hintFileText);
+            paramFileText = self.getInputFileText(self.orientationParamTextLabel, self.orientationParamFileName);
+            set(self.handles.orientationParamText,'String', paramFileText);
+
 
             orientationFileNameText = self.getOutputFileText(self.orientationFileName);
             set(self.handles.orientationOutFileText, 'String', self.orientationFileName);
@@ -565,20 +629,15 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-
-        % TO DO -- change to property
-        % ------------------------------------------------------------------------------
-        function hintFileText = getHintFileText(self)
-            if ~isempty(self.orientationHintFile)
-                fileNameText = self.orientationHintFile;
+        function hintFileText = getInputFileText(self,textLabel,fileName)
+            if ~isempty(fileName)
+                [pathStr, baseFileName, fileExt] = fileparts(fileName);
+                fileNameText = [baseFileName,fileExt];
             else
                 fileNameText = 'none';
             end
-            hintFileText = sprintf('%s %s', self.orientationHintTextLabel, fileNameText);
+            hintFileText = sprintf('%s %s', textLabel, fileNameText);
         end
-        % --------------------------------------------------------------------------------
-
-
 
 
         function nameWithWorkingDir = addWorkingDirToName(self,name)
@@ -672,8 +731,8 @@ classdef FlySorterTrainingImpl < handle
             if isempty(self.fileNameDateNumber)
                 self.fileNameDateNumber = now();
             end
-        end
 
+        end
 
         function saveStateToRcDir(self)
             savedStateStruct = [];
@@ -740,6 +799,49 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function orientationParam = loadOrientationParam(self)
+            orientationParam = [];
+            if ~isempty(self.orientationParamFileName)
+                if exist(self.orientationParamFileName)
+                    try
+                        orientationParam = loadjson(self.orientationParamFileName);
+                    catch ME
+                        errorMsg = sprintf('Orientaion parameter file loadjson error %s', ME.message);
+                        h = warndlg(errorMsg, 'FlySorter Orientation Parameter Warning', 'modal');
+                        uiwait(h);
+                        return;
+                    end
+                    if ~self.checkOrientationParam(orientationParam)
+                        orientationParam = [];
+                    end
+                end
+            end
+        end
+
+
+        function ok = checkOrientationParam(self,orientationParam)
+            ok = true;
+            if isempty(orientationParam) 
+                ok = false;
+                errorMsg = sprintf('Orientaion parameter file format incorrect (loadjson is empty)');
+                h = warndlg(errorMsg, 'FlySorter Orientation Parameter Warning', 'modal');
+                uiwait(h);
+                return;
+            end
+
+            for i = 1:numel(self.orientationParamFieldNames)
+                fieldName = self.orientationParamFieldNames{i};
+                if ~isfield(orientationParam, fieldName)
+                    ok = false;
+                    errorMsg = sprintf('Orientaion parameter file missing field %s',fieldName);
+                    h = warndlg(errorMsg, 'FlySorter Orientation Parameter Warning', 'modal');
+                    uiwait(h);
+                    return;
+                end
+            end
+        end
+
+
         function addJabbaToMatlabPath(self)
             if self.haveJabbaPath
                 addpath(self.jabbaMiscPath);
@@ -756,6 +858,23 @@ classdef FlySorterTrainingImpl < handle
                 if ~isempty(strfind(path, self.jabbaFileHandlingPath))
                     rmpath(self.jabbaFileHandlingPath);
                 end
+            end
+        end
+
+
+        function addJsonLabToMatlabPath(self)
+            if isempty(strfind(path,'jsonlab'))
+                currFileFullPath = mfilename('fullpath');
+                [pathStr, fileName, fileExt] = fileparts(currFileFullPath);
+                self.jsonLabPath = [pathStr,filesep,'jsonlab'];
+                addpath(self.jsonLabPath)
+            end
+        end
+
+
+        function rmJsonLabFromMatlabPath(self)
+            if ~isempty(self.jsonLabPath)
+                rmpath(self.jsonLabPath);
             end
         end
 
