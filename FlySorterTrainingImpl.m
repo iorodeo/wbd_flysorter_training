@@ -40,7 +40,6 @@ classdef FlySorterTrainingImpl < handle
             'nlearn',                    ...
             'learners',                  ...
             };
-        
     end
 
 
@@ -58,7 +57,7 @@ classdef FlySorterTrainingImpl < handle
         trainingDataDateNumber = [];
         orientationHintFileName = [];
         orientationParamFileName = [];
-
+        userClassifier = [];
     end
 
 
@@ -107,8 +106,14 @@ classdef FlySorterTrainingImpl < handle
     methods 
         
 
-        function self = FlySorterTrainingImpl(figureHandle)
+        function self = FlySorterTrainingImpl(figureHandle,varargin)
             self.figureHandle = figureHandle;
+            numArg = numel(varargin);
+            if numArg == 0
+                self.userClassifier = UserClassifierBase();
+            else
+                error('non-base classifiers not yet implemented');
+            end
             self.addJsonLabToMatlabPath()
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
@@ -243,10 +248,11 @@ classdef FlySorterTrainingImpl < handle
 
 
         function runOrientationTraining(self)
+            orientationParam = self.loadOrientationParam()
             self.setAllUiPanelEnable('off')
             self.updateStatusBarText('Running Orientation Training');
             drawnow;
-            runOrientationTraining(self.preProcessingFileFullPath, self.orientationFileFullPath);
+            runOrientationTraining(self.preProcessingFileFullPath,self.orientationFileFullPath,orientationParam);
             self.updateUi();
         end
 
@@ -425,7 +431,7 @@ classdef FlySorterTrainingImpl < handle
             % NOT DONE  - might want a firmer check than just file existence 
             % --------------------------------------------------------------
             haveOrientationData = false;
-            if exist(self.haveOrientationFileFullPath)
+            if exist(self.orientationFileFullPath)
                 haveOrientationData = true;
             else
                 haveOrientationData = false;
@@ -453,7 +459,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function haveUserClassifierData = get.haveUserClassifierData(self)
-            haveUserClassifierData = fasle;
+            haveUserClassifierData = false;
         end
 
 
@@ -562,7 +568,8 @@ classdef FlySorterTrainingImpl < handle
             end
 
             %  - User Classifier subpanel
-            self.enableUiPanelOnTest(self.handles.userClassifierPanel, false);
+            enableTest = enableTest & self.haveOrientationData;
+            self.enableUiPanelOnTest(self.handles.userClassifierPanel, enableTest);
 
             %  - Generate Flysorter Files subpanel
             self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);

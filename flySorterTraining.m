@@ -54,7 +54,7 @@ function flySorterTraining_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for flySorterTraining
 handles.output = hObject;
-handles.impl = FlySorterTrainingImpl(handles.flySorterTrainingFigure);
+handles.impl = FlySorterTrainingImpl(handles.flySorterTrainingFigure,varargin{:});
 guidata(hObject, handles);
 
 % UIWAIT makes flySorterTraining wait for user response (see UIRESUME)

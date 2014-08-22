@@ -1,46 +1,51 @@
-function runOrientationTraining(preProcessingFile,outputFileName)
+function runOrientationTraining(preProcessingFile,outputFileName,param)
 
 % runOrientationTraining:
 %
 % opens processed training data and runs training. 
 %
 
-% Old
-% ---------------------------------------------------------------------
-%opencvdataFileName = 'opencvdata.mat';
-%outputfile = 'orientdata.mat';
-% ---------------------------------------------------------------------
+% Unpack orientation parameters - to match kristins orginal settings
+% Note, there are some slight differences in names between c++ and 
+% the original matlab version.
 
+% When finding body connected components, we close holes
+fitparams.se_close = strel('disk',param.closeRadius,0);
 
-% Note, 
-% --------------------------------------------------------------------
-% Where do we set these params???
-% I think these params need to be in a config file or set by the gui. 
-% --------------------------------------------------------------------
-
-% when finding body connected components, we close holes
-fitparams.se_close = strel('disk',15,0);
-
-% minimum size of a fly body
-fitparams.area_open = 3400;
-fitparams.mina = 58.8333;
-
-% max size of a fly body
-fitparams.max_body_area = 16600;
-fitparams.max_body_a = 140;
+fitparams.area_open = param.openArea;
+fitparams.mina = param.minimumArea;
+fitparams.max_body_area = param.maximumArea;
 
 fitparams.classifyparams = struct;
-fitparams.classifyparams.padborder = 15;
-fitparams.classifyparams.method = 'GentleBoost';
-fitparams.classifyparams.nlearn = 100;
-fitparams.classifyparams.learners = 'Tree';
-% -------------------------------------------------------------------
+fitparams.classifyparams.padborder = param.padBorder;
+fitparams.classifyparams.method = param.method;
+fitparams.classifyparams.nlearn = param.nlearn; 
+fitparams.classifyparams.learners = param.learners;
 
-% Old
-% -------------------------------------------------------------------
-%opencvfile = load(opencvdataFileName);
-%opencvdata = opencvfile.opencvdata;
-% -------------------------------------------------------------------
+%% Old 
+%% --------------------------------------------------------------------
+%% Where do we set these params???
+%% I think these params need to be in a config file or set by the gui. 
+%% --------------------------------------------------------------------
+%
+%% when finding body connected components, we close holes
+%fitparams.se_close = strel('disk',15,0);
+%
+%% minimum size of a fly body
+%fitparams.area_open = 3400;
+%fitparams.mina = 58.8333;
+%
+%% max size of a fly body
+%fitparams.max_body_area = 16600;
+%fitparams.max_body_a = 140;
+%
+%fitparams.classifyparams = struct;
+%fitparams.classifyparams.padborder = 15;
+%fitparams.classifyparams.method = 'GentleBoost';
+%fitparams.classifyparams.nlearn = 100;
+%fitparams.classifyparams.learners = 'Tree';
+%% -------------------------------------------------------------------
+
 fileData = load(preProcessingFile);
 preProcessingData = fileData.preProcessingData;
 opencvdata = preProcessingData.opencvdata;
