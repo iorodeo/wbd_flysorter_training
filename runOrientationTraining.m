@@ -1,4 +1,4 @@
-function runOrientationTraining(preProcessingFile,outputFileName,param)
+function runOrientationTraining(param, preProcessingFile,outputFileName)
 
 % runOrientationTraining:
 %

@@ -5,40 +5,40 @@ classdef FlySorterTrainingImpl < handle
         
         rcDir = '.flysorter_training_rc';
         savedStateFileName = 'flysorter_state.mat';
-        saveFieldNames = {              ... 
-            'numMatlabpoolCores',       ...
-            'jabbaPath',                ...
-            'workingDir',               ...
-            'isFilePrefixChecked',      ...
-            'isAutoIncrementChecked',   ...
-            'isAddDatetimeChecked',     ...
-            'trainingDataDirs',         ...
-            'trainingDataDateNumber',   ...
-            'filePrefix',               ...
-            'orientationHintFileName',  ...
-            'fileNameDateNumber',       ... 
-            'orientationParamFileName', ...
+        saveFieldNames = {                     ... 
+            'numMatlabpoolCores',              ...
+            'jabbaPath',                       ...
+            'workingDir',                      ...
+            'isFilePrefixChecked',             ...
+            'isAutoIncrementChecked',          ...
+            'isAddDatetimeChecked',            ...
+            'trainingDataDirs',                ...
+            'trainingDataDateNumber',          ...
+            'filePrefix',                      ...
+            'orientationHintFileName',         ...
+            'fileNameDateNumber',              ... 
+            'orientationParamFileName',        ...
+            'userClassifierParamFileNameMap',  ...
             };
 
         % Output file base names
         preProcessingFileNameBase  = 'prepro';
         orientationFileNameBase    = 'orient';
-        userClassifierFileNameBase = 'usrcls';
 
         editTextLengthSub = 14; % For setting text length in multi-line textboxes
         outFileTextLabel = 'Output File:';
 
         orientationHintTextLabel = 'Hint File:';
         orientationParamTextLabel = 'Param File:';
-        orientationParamFieldNames = {   ... 
-            'closeRadius',               ...
-            'openArea',                  ...
-            'maximumArea',               ...
-            'minimumArea',               ...
-            'padBorder',                 ...
-            'method',                    ...
-            'nlearn',                    ...
-            'learners',                  ...
+        orientationParamFieldNames = {      ... 
+            'closeRadius',                  ...
+            'openArea',                     ...
+            'maximumArea',                  ...
+            'minimumArea',                  ...
+            'padBorder',                    ...
+            'method',                       ...
+            'nlearn',                       ...
+            'learners',                     ...
             };
     end
 
@@ -57,7 +57,11 @@ classdef FlySorterTrainingImpl < handle
         trainingDataDateNumber = [];
         orientationHintFileName = [];
         orientationParamFileName = [];
+
         userClassifier = [];
+        userClassifierType = 'base';
+        userClassifierParamFileNameMap = containers.Map('KeyType','char','ValueType','char');
+
     end
 
 
@@ -80,8 +84,9 @@ classdef FlySorterTrainingImpl < handle
         haveWorkingDir;
         haveTrainingData;
         havePreProcessingData;
-        haveOrientationData;
         haveOrientationParam;
+        haveOrientationData;
+        haveUserClassifierParam;
         haveUserClassifierData;
 
         preProcessingFileName;
@@ -99,6 +104,10 @@ classdef FlySorterTrainingImpl < handle
 
         orientationParamPath;
 
+        userClassifierTypeTitleStr;
+        userClassifierParamPath;
+        userClassifierParamFileName;
+
     end
 
 
@@ -109,11 +118,20 @@ classdef FlySorterTrainingImpl < handle
         function self = FlySorterTrainingImpl(figureHandle,varargin)
             self.figureHandle = figureHandle;
             numArg = numel(varargin);
-            if numArg == 0
-                self.userClassifier = UserClassifierBase();
-            else
-                error('non-base classifiers not yet implemented');
+            if length(varargin) > 0 
+                self.userClassifierType = varargin{1};
             end
+
+            switch self.userClassifierType
+
+                case 'base'
+                    self.userClassifier = UserClassifierBase();
+
+                otherwise
+                    error('classifier type %s not implemented',self.userClassifierType);
+
+            end
+
             self.addJsonLabToMatlabPath()
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
@@ -234,7 +252,7 @@ classdef FlySorterTrainingImpl < handle
             [fileName, pathName] = uigetfile(filterSpec,'Select Orientation Parameter File');
             self.orientationParamFileName = [];
             if fileName ~= 0
-                fullPathName = [pathName,filesep,fileName];
+                fullPathName = [pathName,fileName];
                 if exist(fullPathName)
                     self.orientationParamFileName = fullPathName;
                     orientationParam = self.loadOrientationParam(); % Test
@@ -252,13 +270,36 @@ classdef FlySorterTrainingImpl < handle
             self.setAllUiPanelEnable('off')
             self.updateStatusBarText('Running Orientation Training');
             drawnow;
-            runOrientationTraining(self.preProcessingFileFullPath,self.orientationFileFullPath,orientationParam);
+            runOrientationTraining(orientationParam,self.preProcessingFileFullPath,self.orientationFileFullPath);
             self.updateUi();
         end
 
 
         function clearOrientationTraining(self)
             disp('clearOrientationTraining');
+        end
+
+
+        function setUserClassifierParamWithGui(self)
+            filterSpec = [self.orientationParamPath,filesep,'*.json'];
+            titleStr = sprintf('Select %s Parameter File',self.userClassifierTypeTitleStr);
+            [fileName, pathName] = uigetfile(filterSpec,titleStr);
+            if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
+                self.userClassifierParamFileNameMap.remove(self.userClassifierType);
+            end
+            if fileName ~= 0
+                fullPathName = [pathName,fileName];
+                if exist(fullPathName)
+                    disp('setting')
+                    self.userClassifierParamFileNameMap(self.userClassifierType) = fullPathName;
+                    %userClassifierParam = self.loadUserClassifierParam()
+                    %orientationParam = self.loadOrientationParam(); % Test
+                    %if isempty(orientationParam)
+                    %    self.orientationParamFileNameMap.remove(self.userClassifierType);
+                    %end
+                end
+            end
+            self.updateUi();
         end
 
 
@@ -415,26 +456,10 @@ classdef FlySorterTrainingImpl < handle
         
 
         function havePreProcessingData = get.havePreProcessingData(self)
-            % --------------------------------------------------------------
-            % NOT DONE  - might want a firmer check than just file existence 
-            % --------------------------------------------------------------
             if exist(self.preProcessingFileFullPath)
                 havePreProcessingData = true;
             else
                 havePreProcessingData = false;
-            end
-        end
-
-
-        function haveOrientationData = get.haveOrientationData(self)
-            % --------------------------------------------------------------
-            % NOT DONE  - might want a firmer check than just file existence 
-            % --------------------------------------------------------------
-            haveOrientationData = false;
-            if exist(self.orientationFileFullPath)
-                haveOrientationData = true;
-            else
-                haveOrientationData = false;
             end
         end
 
@@ -458,6 +483,48 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
+        function haveOrientationData = get.haveOrientationData(self)
+            haveOrientationData = false;
+            if exist(self.orientationFileFullPath)
+                haveOrientationData = true;
+            else
+                haveOrientationData = false;
+            end
+        end
+
+
+        function haveUserClassifierParam = get.haveUserClassifierParam(self)
+            haveUserClassifierParam = false;
+            if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
+                haveUserClassifierParam = true;
+            end
+        end
+
+
+        function titleStr = get.userClassifierTypeTitleStr(self)
+            titleStr = [upper(self.userClassifierType(1)), lower(self.userClassifierType(2:end))];
+        end
+
+
+        function userClassifierParamFileName = get.userClassifierParamFileName(self)
+            userClassifierParamFileName = []
+            if self.haveUserClassifierParam
+                userClassifierParamFileName = userClassifierParamFileNameMap(self.userClassifierType) 
+            end
+        end
+
+
+        function userClassifierParamPath = get.userClassifierParamPath(self)
+            userClassifierParamPath = self.workingDir;
+            if self.haveUserClassifierParam
+                [pathStr, fileName, fileExt] = fileparts(self.userClassifierParamFileName);
+                if exist(pathStr)
+                    userClassifierParamPath = pathStr;
+                end
+            end
+        end
+
+
         function haveUserClassifierData = get.haveUserClassifierData(self)
             haveUserClassifierData = false;
         end
@@ -474,7 +541,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function userClassifierFileName = get.userClassifierFileName(self)
-            userClassifierFileName = self.getOutputFileName(self.userClassifierFileNameBase);
+            userClassifierFileName = self.getOutputFileName(self.userClassifier.fileNameBase);
         end
 
 
@@ -847,6 +914,27 @@ classdef FlySorterTrainingImpl < handle
                 end
             end
         end
+
+
+        %function userClassifierParam = loadUserClassifierParam(self)
+        %    userClassifierParam = [];
+        %    if ~isempty(self.orientationParamFileName)
+        %        if exist(self.orientationParamFileName)
+        %            try
+        %                userClassifierParam = loadjson(self.userClassifierParamFileName);
+        %            catch ME
+        %                errorMsg = sprintf(' parameter file loadjson error %s', ME.message);
+        %                h = warndlg(errorMsg, 'FlySorter Orientation Parameter Warning', 'modal');
+        %                uiwait(h);
+        %                return;
+        %            end
+        %            if ~self.checkOrientationParam(orientationParam)
+        %                orientationParam = [];
+        %            end
+        %        end
+        %    end
+
+        %end
 
 
         function addJabbaToMatlabPath(self)
