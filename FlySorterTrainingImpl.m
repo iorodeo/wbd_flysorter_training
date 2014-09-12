@@ -40,11 +40,14 @@ classdef FlySorterTrainingImpl < handle
             'nlearn',                       ...
             'learners',                     ...
             };
+
+        userClassifierParamTextLabel = 'Param File:';
     end
 
 
     properties
 
+        stateInitialized = false;
         haveRcDir = true;
         figureHandle = [];
         machineNumCores = 0;
@@ -120,33 +123,29 @@ classdef FlySorterTrainingImpl < handle
             numArg = numel(varargin);
             if length(varargin) > 0 
                 self.userClassifierType = varargin{1};
+            else
+                self.userClassifierType = 'demo';
             end
 
-            switch self.userClassifierType
-
-                case 'base'
-                    self.userClassifier = UserClassifierBase();
-
-                otherwise
-                    error('classifier type %s not implemented',self.userClassifierType);
-
-            end
-
+            self.initUserClassifier();
             self.addJsonLabToMatlabPath()
             self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
+            self.stateInitialized = true;
             self.updateUi();
         end
 
 
         function delete(self)
-            self.saveStateToRcDir();
+            if self.stateInitialized
+                self.saveStateToRcDir();
+            end
             self.rmJabbaFromMatlabPath();
             self.rmJsonLabFromMatlabPath();
         end
 
 
-        function onPoolEnableChangle(self)
+        function onPoolEnableChange(self)
             if self.isPoolEnableChecked
                 disp('enable pool')
             else
@@ -281,7 +280,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setUserClassifierParamWithGui(self)
-            filterSpec = [self.orientationParamPath,filesep,'*.json'];
+            filterSpec = [self.userClassifierParamPath,filesep,'*.json'];
             titleStr = sprintf('Select %s Parameter File',self.userClassifierTypeTitleStr);
             [fileName, pathName] = uigetfile(filterSpec,titleStr);
             if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
@@ -292,11 +291,10 @@ classdef FlySorterTrainingImpl < handle
                 if exist(fullPathName)
                     disp('setting')
                     self.userClassifierParamFileNameMap(self.userClassifierType) = fullPathName;
-                    %userClassifierParam = self.loadUserClassifierParam()
-                    %orientationParam = self.loadOrientationParam(); % Test
-                    %if isempty(orientationParam)
-                    %    self.orientationParamFileNameMap.remove(self.userClassifierType);
-                    %end
+                    userClassifierParam = self.loadUserClassifierParam(); % Test
+                    if isempty(userClassifierParam)
+                        self.userClassifierParamFileNameMap.remove(self.userClassifierType);
+                    end
                 end
             end
             self.updateUi();
@@ -309,7 +307,10 @@ classdef FlySorterTrainingImpl < handle
 
 
         function runUserClassifierTraining(self)
-            disp('runUserClassifierTraining');
+            param = self.loadUserClassifierParam(); 
+            inputFile = self.orientationFileFullPath;
+            outputFile = self.userClassifierFileFullPath;
+            self.userClassifier.run(param,inputFile,outputFile); 
         end
 
 
@@ -408,6 +409,9 @@ classdef FlySorterTrainingImpl < handle
         end
 
         function set.isFilePrefixChecked(self, value)
+            if ~isscalar(value)
+                value = false;
+            end
             set(self.handles.filePrefixCheckbox,'value', value) 
         end
 
@@ -417,6 +421,9 @@ classdef FlySorterTrainingImpl < handle
         end
 
         function set.isAddDatetimeChecked(self,value)
+            if ~isscalar(value)
+                value = false;
+            end
             set(self.handles.addDatetimeCheckbox,'value', value);
         end
 
@@ -427,10 +434,16 @@ classdef FlySorterTrainingImpl < handle
 
 
         function set.isAutoIncrementChecked(self,value)
+            if ~isscalar(value)
+                value = false;
+            end
             set(self.handles.autoIncrementCheckbox, 'value', value);
         end
 
         function isOrientationHintFileChecked = get.isOrientationHintFileChecked(self)
+            if ~isscalar(value)
+                value = false;
+            end
             isOrientationHintFileChecked = get(self.handles.orientationHintCheckbox,'Value');
         end
 
@@ -507,9 +520,9 @@ classdef FlySorterTrainingImpl < handle
 
 
         function userClassifierParamFileName = get.userClassifierParamFileName(self)
-            userClassifierParamFileName = []
+            userClassifierParamFileName = [];
             if self.haveUserClassifierParam
-                userClassifierParamFileName = userClassifierParamFileNameMap(self.userClassifierType) 
+                userClassifierParamFileName = self.userClassifierParamFileNameMap(self.userClassifierType);
             end
         end
 
@@ -596,10 +609,13 @@ classdef FlySorterTrainingImpl < handle
             self.updateAllUiPanelEnable()
             self.updateUiText();
 
-            % Temporary
-            % -----------------------------------------------------
+            % Temporary - disable some features which aren't implemented yet
+            % -----------------------------------------------------------------
             set(self.handles.autoIncrementCheckbox,'Enable','off');
-            % -----------------------------------------------------
+            set(self.handles.orientationHintCheckbox,'Enable', 'off');
+            set(self.handles.orientationHintText, 'Enable', 'off');
+            set(self.handles.orientationHintPushButton, 'Enable', 'off');
+            % -----------------------------------------------------------------
         end
 
 
@@ -672,6 +688,10 @@ classdef FlySorterTrainingImpl < handle
             set(self.handles.orientationOutFileText, 'String', self.orientationFileName);
 
             % User classifier training panel
+            userClassifierTitleStr = sprintf('(4) %s Classifier Training', self.userClassifierTypeTitleStr);
+            set(self.handles.userClassifierPanel, 'Title', userClassifierTitleStr);
+            paramFileText = self.getInputFileText(self.userClassifierParamTextLabel, self.userClassifierParamFileName);
+            set(self.handles.userClassifierParamText,'String', paramFileText);
             userClassifierFileText = self.getOutputFileText(self.userClassifierFileName);
             set(self.handles.userClassifierOutFileText,'String',userClassifierFileText);
 
@@ -738,6 +758,16 @@ classdef FlySorterTrainingImpl < handle
                     setUiPanelEnable(child,value);
                 end
             end
+        end
+
+
+        function initUserClassifier(self)
+            userClassifierClassName = sprintf('%sClassifierPlugin',self.userClassifierTypeTitleStr);
+            userClassifierClassFileName = sprintf('%s.m',userClassifierClassName);
+            if ~exist(userClassifierClassFileName)
+                error('user classifier, %s, does not exist',userClassifierFileName);
+            end
+            self.userClassifier = feval(userClassifierClassName);
         end
 
 
@@ -916,25 +946,28 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        %function userClassifierParam = loadUserClassifierParam(self)
-        %    userClassifierParam = [];
-        %    if ~isempty(self.orientationParamFileName)
-        %        if exist(self.orientationParamFileName)
-        %            try
-        %                userClassifierParam = loadjson(self.userClassifierParamFileName);
-        %            catch ME
-        %                errorMsg = sprintf(' parameter file loadjson error %s', ME.message);
-        %                h = warndlg(errorMsg, 'FlySorter Orientation Parameter Warning', 'modal');
-        %                uiwait(h);
-        %                return;
-        %            end
-        %            if ~self.checkOrientationParam(orientationParam)
-        %                orientationParam = [];
-        %            end
-        %        end
-        %    end
-
-        %end
+        function userClassifierParam = loadUserClassifierParam(self)
+            userClassifierParam = [];
+            if ~isempty(self.userClassifierParamFileName)
+                if exist(self.userClassifierParamFileName)
+                    try
+                        userClassifierParam = loadjson(self.userClassifierParamFileName);
+                    catch ME
+                        errorMsg = sprintf(' Classifier parameter file loadjson error %s', ME.message);
+                        h = warndlg(errorMsg, 'FlySorter Classifier Parameter Warning', 'modal');
+                        uiwait(h);
+                        return;
+                    end
+                    [ok,errorMsg] = self.userClassifier.checkParam(userClassifierParam);
+                    if ~ok
+                        userClassifierParam = [];
+                        errorMsg = sprintf('%s, load json parameter error: %s', self.userClassifierTypeTitleStr, errorMsg);
+                        h = warndlg(errorMsg, 'FlySorter User Classifier Parameter Warning', 'modal');
+                        uiwait(h);
+                    end
+                end
+            end
+        end
 
 
         function addJabbaToMatlabPath(self)

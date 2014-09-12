@@ -1,8 +1,8 @@
-classdef UserClassifierBase < handle
+classdef GenderClassifierPlugin < handle
 
     properties (Constant) 
 
-        fileNameBase = 'usrcls';
+        fileNameBase = 'gendercls';
         paramFieldNames = {  ...
             'dummyField1',   ...
             'dummyField2',   ...
@@ -16,12 +16,15 @@ classdef UserClassifierBase < handle
 
     methods
 
+        function self = GenderClassifierPlugin()
+        end
+
         
         function [ok,errMsg] = checkParam(self,param)
             ok = true;
             errMsg = '';
             for i =1:numel(self.paramFieldNames)
-                fieldName = self.paramfieldNames{i};
+                fieldName = self.paramFieldNames{i};
                 if ~isfield(param, fieldName)
                     ok = false;
                     errMsg = sprintf('missing field %s',fieldName);
@@ -36,4 +39,4 @@ classdef UserClassifierBase < handle
 
     end  % methods 
 
-end  % classdef UserClassifierBase
+end  % classdef GenderClassifierPlugin

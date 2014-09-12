@@ -379,8 +379,10 @@ function flySorterTrainingFigure_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.impl.delete()  % delete before figure is detroyed - as we need
-                       % data from graphics objects to save state.
+if isfield(handles, 'impl')
+    handles.impl.delete();  % delete before figure is detroyed - as we need
+                            % data from graphics objects to save state.
+end
 
 
 % --- Executes on button press in nowDatetimePushButton.
