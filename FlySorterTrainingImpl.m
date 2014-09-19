@@ -5,9 +5,11 @@ classdef FlySorterTrainingImpl < handle
         
         rcDir = '.flysorter_training_rc';
         savedStateFileName = 'flysorter_state.mat';
-        saveFieldNames = {                     ... 
+        saveFieldNamesGeneral = {              ...
             'numMatlabpoolCores',              ...
             'jabbaPath',                       ...
+            };
+        saveFieldNamesSpecific = {             ... 
             'workingDir',                      ...
             'isFilePrefixChecked',             ...
             'isAutoIncrementChecked',          ...
@@ -49,6 +51,7 @@ classdef FlySorterTrainingImpl < handle
 
         stateInitialized = false;
         haveRcDir = true;
+
         figureHandle = [];
         machineNumCores = 0;
         numMatlabpoolCores = 0;
@@ -56,13 +59,15 @@ classdef FlySorterTrainingImpl < handle
         jabbaPath = [];
         workingDir = [];
         fileNameDateNumber = [];
+
         trainingDataDirs = {};  
         trainingDataDateNumber = [];
+
         orientationHintFileName = [];
         orientationParamFileName = [];
 
         userClassifier = [];
-        userClassifierType = 'base';
+        userClassifierType = 'demo';
         userClassifierParamFileNameMap = containers.Map('KeyType','char','ValueType','char');
 
     end
@@ -73,6 +78,8 @@ classdef FlySorterTrainingImpl < handle
         handles;
         rcDirFullPath;
         savedStateFullPath;
+        savedStateBackupFileName;
+        savedStateBackupFullPath;
         jabbaMiscPath;
         jabbaFileHandlingPath;
 
@@ -283,6 +290,7 @@ classdef FlySorterTrainingImpl < handle
             filterSpec = [self.userClassifierParamPath,filesep,'*.json'];
             titleStr = sprintf('Select %s Parameter File',self.userClassifierTypeTitleStr);
             [fileName, pathName] = uigetfile(filterSpec,titleStr);
+
             if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
                 self.userClassifierParamFileNameMap.remove(self.userClassifierType);
             end
@@ -378,6 +386,17 @@ classdef FlySorterTrainingImpl < handle
 
         function savedStateFullPath = get.savedStateFullPath(self)
             savedStateFullPath = [self.rcDirFullPath, filesep, self.savedStateFileName];
+        end
+
+        
+        function savedStateBackupFileName = get.savedStateBackupFileName(self)
+            [pathName,baseName,extName] = fileparts(self.savedStateFileName);
+            savedStateBackupFileName = [baseName,'_backup',extName];
+        end
+
+
+        function savedStateBackupFullPath = get.savedStateBackupFullPath(self) 
+            savedStateBackupFullPath = [self.rcDirFullPath, filesep, self.savedStateBackupFileName];
         end
 
 
@@ -808,27 +827,44 @@ classdef FlySorterTrainingImpl < handle
             if ~self.haveRcDir;
                 return;
             end
-            haveSavedStateData = false;
+            haveSavedStateDataGeneral = false;
+            haveSavedStateDataSpecific = false;
             savedStateStruct = [];
             if exist(self.savedStateFullPath,'file')
                 fprintf('loading state from %s\n',self.savedStateFullPath);
                 fileData = load(self.savedStateFullPath);
                 if isfield(fileData,'savedStateStruct')
                     savedStateStruct = fileData.savedStateStruct;
-                    haveSavedStateData = true;
+                    haveSavedStateDataGeneral  = true;
+                    if isfield(savedStateStruct,self.userClassifierType)
+                        haveSavedStateDataSpecific = true;
+                    end
                 end
             end
 
-            % Set field values using saved state data
-            if haveSavedStateData
-                for i=1:numel(self.saveFieldNames)
-                    fieldName = self.saveFieldNames{i};
+            % Set field values using saved state data - general (non-classifier specific valus)
+            if haveSavedStateDataGeneral
+                for i=1:numel(self.saveFieldNamesGeneral)
+                    fieldName = self.saveFieldNamesGeneral{i};
                     if isfield(savedStateStruct, fieldName)
                         self.(fieldName) = savedStateStruct.(fieldName);
                     end
                 end
+
             else
-                fprintf('no saved state information - using default values\n');
+                fprintf('no general saved state information - using default values\n');
+            end
+            
+            % Set field values using saved state data - classifier specific valus
+            if haveSavedStateDataSpecific
+                for i=1:numel(self.saveFieldNamesSpecific)
+                    fieldName = self.saveFieldNamesSpecific{i};
+                    if isfield(savedStateStruct.(self.userClassifierType), fieldName)
+                        self.(fieldName) = savedStateStruct.(self.userClassifierType).(fieldName);
+                    end
+                end
+            else
+                fprintf('no classifier specific saved state information - using default values\n');
             end
 
             % Set dateNumber to now if is empty
@@ -840,9 +876,17 @@ classdef FlySorterTrainingImpl < handle
 
         function saveStateToRcDir(self)
             savedStateStruct = [];
-            for i = 1:numel(self.saveFieldNames)
-                fieldName = self.saveFieldNames{i};
+            for i = 1:numel(self.saveFieldNamesGeneral)
+                fieldName = self.saveFieldNamesGeneral{i};
                 savedStateStruct.(fieldName) = self.(fieldName);
+            end
+            for i = 1:numel(self.saveFieldNamesSpecific)
+                fieldName = self.saveFieldNamesSpecific{i};
+                savedStateStruct.(self.userClassifierType).(fieldName) = self.(fieldName);
+            end
+
+            if exist(self.savedStateFullPath)
+                movefile(self.savedStateFullPath, self.savedStateBackupFullPath);
             end
             save(self.savedStateFullPath, 'savedStateStruct');
         end
