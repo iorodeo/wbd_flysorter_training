@@ -1085,8 +1085,12 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setMultiLineEditText(self, editTextHandle, editTextString)
+
+            set(editTextHandle,'units', 'character');
             textPosition = get(editTextHandle,'position');
-            editTextLength = textPosition(3) - self.editTextLengthSub;
+            set(editTextHandle,'units', 'normalized');
+
+            editTextLength = round(textPosition(3)) - self.editTextLengthSub;
             if editTextString
                 editTextCell = {};
                 while length(editTextString) > 0 
