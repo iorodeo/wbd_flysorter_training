@@ -5,10 +5,12 @@ classdef FlySorterTrainingImpl < handle
         
         rcDir = '.flysorter_training_rc';
         savedStateFileName = 'flysorter_state.mat';
+
         saveFieldNamesGeneral = {              ...
             'numMatlabpoolCores',              ...
             'jabbaPath',                       ...
             };
+
         saveFieldNamesSpecific = {             ... 
             'workingDir',                      ...
             'isFilePrefixChecked',             ...
@@ -20,14 +22,15 @@ classdef FlySorterTrainingImpl < handle
             'orientationHintFileName',         ...
             'fileNameDateNumber',              ... 
             'orientationParamFileName',        ...
-            'userClassifierParamFileNameMap',  ...
+            'userClassifierParamFileName',     ...
             };
 
         % Output file base names
         preProcessingFileNameBase  = 'prepro';
         orientationFileNameBase    = 'orient';
 
-        editTextLengthSub = 14; % For setting text length in multi-line textboxes
+        
+        editTextLengthSub = 14; % Length sub for multi-line textboxes
         outFileTextLabel = 'Output File:';
 
         orientationHintTextLabel = 'Hint File:';
@@ -50,6 +53,8 @@ classdef FlySorterTrainingImpl < handle
     properties
 
         stateInitialized = false;
+        savedStateStruct = struct();
+
         haveRcDir = true;
 
         figureHandle = [];
@@ -68,7 +73,7 @@ classdef FlySorterTrainingImpl < handle
 
         userClassifier = [];
         userClassifierType = 'demo';
-        userClassifierParamFileNameMap = containers.Map('KeyType','char','ValueType','char');
+        userClassifierParamFileName = [];
 
     end
 
@@ -116,7 +121,7 @@ classdef FlySorterTrainingImpl < handle
 
         userClassifierTypeTitleStr;
         userClassifierParamPath;
-        userClassifierParamFileName;
+        %userClassifierParamFileName;
 
     end
 
@@ -273,10 +278,19 @@ classdef FlySorterTrainingImpl < handle
 
         function runOrientationTraining(self)
             orientationParam = self.loadOrientationParam()
+            if isempty(orientationParam)
+                return
+            end
             self.setAllUiPanelEnable('off')
             self.updateStatusBarText('Running Orientation Training');
             drawnow;
-            runOrientationTraining(orientationParam,self.preProcessingFileFullPath,self.orientationFileFullPath);
+            try
+                runOrientationTraining(orientationParam,self.preProcessingFileFullPath,self.orientationFileFullPath);
+            catch ME 
+                errorMsg = sprintf('Orientaion training failed:  %s', ME.message);
+                h = errordlg(errorMsg, 'FlySorter Orientation Training Error', 'modal');
+                uiwait(h);
+            end
             self.updateUi();
         end
 
@@ -290,18 +304,15 @@ classdef FlySorterTrainingImpl < handle
             filterSpec = [self.userClassifierParamPath,filesep,'*.json'];
             titleStr = sprintf('Select %s Parameter File',self.userClassifierTypeTitleStr);
             [fileName, pathName] = uigetfile(filterSpec,titleStr);
+            self.userClassifierParamFileName = [];
 
-            if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
-                self.userClassifierParamFileNameMap.remove(self.userClassifierType);
-            end
             if fileName ~= 0
                 fullPathName = [pathName,fileName];
                 if exist(fullPathName)
-                    disp('setting')
-                    self.userClassifierParamFileNameMap(self.userClassifierType) = fullPathName;
+                    self.userClassifierParamFileName = fullPathName;
                     userClassifierParam = self.loadUserClassifierParam(); % Test
                     if isempty(userClassifierParam)
-                        self.userClassifierParamFileNameMap.remove(self.userClassifierType);
+                        self.userClassifierParamFileName = [];
                     end
                 end
             end
@@ -527,22 +538,14 @@ classdef FlySorterTrainingImpl < handle
 
         function haveUserClassifierParam = get.haveUserClassifierParam(self)
             haveUserClassifierParam = false;
-            if self.userClassifierParamFileNameMap.isKey(self.userClassifierType)
-                haveUserClassifierParam = true;
+            if ~isempty(self.userClassifierParamFileName)
+                haveUserClassifierParam = true; 
             end
         end
 
 
         function titleStr = get.userClassifierTypeTitleStr(self)
             titleStr = [upper(self.userClassifierType(1)), lower(self.userClassifierType(2:end))];
-        end
-
-
-        function userClassifierParamFileName = get.userClassifierParamFileName(self)
-            userClassifierParamFileName = [];
-            if self.haveUserClassifierParam
-                userClassifierParamFileName = self.userClassifierParamFileNameMap(self.userClassifierType);
-            end
         end
 
 
@@ -829,14 +832,14 @@ classdef FlySorterTrainingImpl < handle
             end
             haveSavedStateDataGeneral = false;
             haveSavedStateDataSpecific = false;
-            savedStateStruct = [];
+
             if exist(self.savedStateFullPath,'file')
                 fprintf('loading state from %s\n',self.savedStateFullPath);
                 fileData = load(self.savedStateFullPath);
                 if isfield(fileData,'savedStateStruct')
-                    savedStateStruct = fileData.savedStateStruct;
+                    self.savedStateStruct = fileData.savedStateStruct;
                     haveSavedStateDataGeneral  = true;
-                    if isfield(savedStateStruct,self.userClassifierType)
+                    if isfield(self.savedStateStruct,self.userClassifierType)
                         haveSavedStateDataSpecific = true;
                     end
                 end
@@ -846,8 +849,8 @@ classdef FlySorterTrainingImpl < handle
             if haveSavedStateDataGeneral
                 for i=1:numel(self.saveFieldNamesGeneral)
                     fieldName = self.saveFieldNamesGeneral{i};
-                    if isfield(savedStateStruct, fieldName)
-                        self.(fieldName) = savedStateStruct.(fieldName);
+                    if isfield(self.savedStateStruct, fieldName)
+                        self.(fieldName) = self.savedStateStruct.(fieldName);
                     end
                 end
 
@@ -859,8 +862,8 @@ classdef FlySorterTrainingImpl < handle
             if haveSavedStateDataSpecific
                 for i=1:numel(self.saveFieldNamesSpecific)
                     fieldName = self.saveFieldNamesSpecific{i};
-                    if isfield(savedStateStruct.(self.userClassifierType), fieldName)
-                        self.(fieldName) = savedStateStruct.(self.userClassifierType).(fieldName);
+                    if isfield(self.savedStateStruct.(self.userClassifierType), fieldName)
+                        self.(fieldName) = self.savedStateStruct.(self.userClassifierType).(fieldName);
                     end
                 end
             else
@@ -875,7 +878,7 @@ classdef FlySorterTrainingImpl < handle
         end
 
         function saveStateToRcDir(self)
-            savedStateStruct = [];
+            savedStateStruct = self.savedStateStruct;
             for i = 1:numel(self.saveFieldNamesGeneral)
                 fieldName = self.saveFieldNamesGeneral{i};
                 savedStateStruct.(fieldName) = self.(fieldName);

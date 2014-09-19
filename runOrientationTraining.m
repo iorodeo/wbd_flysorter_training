@@ -22,29 +22,6 @@ fitparams.classifyparams.method = param.method;
 fitparams.classifyparams.nlearn = param.nlearn; 
 fitparams.classifyparams.learners = param.learners;
 
-%% Old 
-%% --------------------------------------------------------------------
-%% Where do we set these params???
-%% I think these params need to be in a config file or set by the gui. 
-%% --------------------------------------------------------------------
-%
-%% when finding body connected components, we close holes
-%fitparams.se_close = strel('disk',15,0);
-%
-%% minimum size of a fly body
-%fitparams.area_open = 3400;
-%fitparams.mina = 58.8333;
-%
-%% max size of a fly body
-%fitparams.max_body_area = 16600;
-%fitparams.max_body_a = 140;
-%
-%fitparams.classifyparams = struct;
-%fitparams.classifyparams.padborder = 15;
-%fitparams.classifyparams.method = 'GentleBoost';
-%fitparams.classifyparams.nlearn = 100;
-%fitparams.classifyparams.learners = 'Tree';
-%% -------------------------------------------------------------------
 
 fileData = load(preProcessingFile);
 preProcessingData = fileData.preProcessingData;
@@ -83,11 +60,6 @@ for i = 1:numel(gtposdata),
 end
 
 
-% Old
-% -----------------------------------------------------------------------------------
-%save(outputfile,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
-% -----------------------------------------------------------------------------------
-
 save(outputFileName,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
 
 % look at area thresholds
@@ -106,10 +78,6 @@ res = questdlg('Do you want to perform cross-validation? This will take a while.
 if strcmpi(res,'yes'),
   [yfitcv_or,fraccorrect_or] = CrossValidationOverMovies(Xor,yor,fitparams.featurenames,...
     imfiles(imis),fitparams.classifyparams.nlearn);
-    % Old
-    % -------------------------------------------------------
-    %save('-append',outputfile,'yfitcv_or','fraccorrect_or');
-    % -------------------------------------------------------
     save('-append',outputFileName,'yfitcv_or','fraccorrect_or');
 end
 

@@ -1,11 +1,17 @@
 function [fitparams,gtposdata,X,y,imis,featurenames] = ...
   LabelTrainOrientationClassifier(imfiles,segfiles,fitparams,varargin)
 
-hfig = 678;
 nperpage = [200,200,inf];
 maxnshow = 500;
-[hfig,nperpage,fromfile,datafiles,maxnshow] = myparse(varargin,'hfig',hfig,'nperpage',nperpage,'fromfile',false,...
-  'datafiles',{},'maxnshow',maxnshow);
+
+[nperpage,fromfile,datafiles,maxnshow] = myparse( ...
+    varargin,                                     ...
+    'nperpage',    nperpage,                      ...
+    'fromfile',    false,                         ...  
+    'datafiles',   {},                            ...
+    'maxnshow',    maxnshow                       ...
+    );
+
 
 %[v,order] =
 
@@ -83,7 +89,7 @@ while true,
 
   for showi = 1:numel(startisshow),
     
-    figure(hfig);
+    fighandle = figure();
     clf;
     hax = gca;
     hold on;
@@ -148,10 +154,17 @@ while true,
     axis ij;
     axis image;
   
-    input('Hit enter when you are done setting all flies to be facing up.');
-  
+    title('Set all flies facing up and close figure when done (right-click to flip, left-click to reject');
+
+    % Set close reqeust to the uiresume is called on figure close
+    set(fighandle,'CloseRequestFcn',@(srv,evnt)uiresume(fighandle))
+    uiwait(fighandle);
+
+    
+    % Get data and actually close figure
     posdatacurr = get(hax,'UserData');
-    set(him,'ButtonDownFcn','');
+    set(fighandle,'CloseRequestFcn', '')
+    delete(fighandle)
     
   end
   
