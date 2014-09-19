@@ -154,7 +154,7 @@ while true,
     axis ij;
     axis image;
   
-    title('Set all flies facing up and close figure when done (right-click to flip, left-click to reject');
+    title('Set all flies facing up and close figure when done (right-click to flip, left-click to reject)');
 
     % Set close reqeust to the uiresume is called on figure close
     set(fighandle,'CloseRequestFcn',@(srv,evnt)uiresume(fighandle))

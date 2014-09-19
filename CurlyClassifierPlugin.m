@@ -11,8 +11,7 @@ classdef CurlyClassifierPlugin < handle
             'dummyField5',   ...
         };
 
-    end  % properties (Constant)
-
+    end  
 
     methods
 
@@ -33,10 +32,10 @@ classdef CurlyClassifierPlugin < handle
         end
 
 
-        function run(self,param,inputFileName,outpuFileName)
+        function run(self,param,inputFileName,outputFileName)
         end
 
 
-    end  % methods 
+    end  
 
-end  % classdef CurlyClassifierPlugin
+end  

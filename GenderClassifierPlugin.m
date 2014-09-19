@@ -10,13 +10,12 @@ classdef GenderClassifierPlugin < handle
             'learners',      ...
         };
 
-    end  % properties (Constant)
+    end  
 
 
     methods
 
         function [ok,errMsg] = checkParam(self,param)
-            % Current just makes sure that all the expected parameters are present
             ok = true;
             errMsg = '';
             for i =1:numel(self.paramFieldNames)
@@ -29,10 +28,10 @@ classdef GenderClassifierPlugin < handle
         end
 
 
-        function run(self,param,inputFileName,outpuFileName)
+        function run(self,param,inputFileName,outputFileName)
+            runGenderTraining(param, inputFileName, outputFileName);
         end
 
+    end  
 
-    end  % methods 
-
-end  % classdef GenderClassifierPlugin
+end  

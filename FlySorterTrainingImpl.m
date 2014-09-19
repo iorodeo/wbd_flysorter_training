@@ -121,7 +121,6 @@ classdef FlySorterTrainingImpl < handle
 
         userClassifierTypeTitleStr;
         userClassifierParamPath;
-        %userClassifierParamFileName;
 
     end
 
@@ -277,7 +276,7 @@ classdef FlySorterTrainingImpl < handle
 
 
         function runOrientationTraining(self)
-            orientationParam = self.loadOrientationParam()
+            orientationParam = self.loadOrientationParam();
             if isempty(orientationParam)
                 return
             end
@@ -327,9 +326,24 @@ classdef FlySorterTrainingImpl < handle
 
         function runUserClassifierTraining(self)
             param = self.loadUserClassifierParam(); 
+            if isempty(param)
+                return;
+            end
+            self.setAllUiPanelEnable('off')
+            statusBarText = sprintf('Running %s Training', self.userClassifierTypeTitleStr);
+            self.updateStatusBarText(statusBarText);
+            drawnow;
+
             inputFile = self.orientationFileFullPath;
             outputFile = self.userClassifierFileFullPath;
-            self.userClassifier.run(param,inputFile,outputFile); 
+            try
+                self.userClassifier.run(param,inputFile,outputFile); 
+            catch ME 
+                errorMsg = sprintf('%straining failed:  %s', self.userClassifierTypeTitleStr, ME.message);
+                h = errordlg(errorMsg, 'FlySorter Classifier Training Error', 'modal');
+                uiwait(h);
+            end
+            self.updateUi();
         end
 
 
