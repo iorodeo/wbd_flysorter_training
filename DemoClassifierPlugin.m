@@ -13,7 +13,19 @@ classdef DemoClassifierPlugin < handle
             'dummyField5',   ...
         };
 
+        labels = {'X','Y'};
+        dirStr = {'xstring', 'ystring'};
+        dirStrToLabelMap = containers.Map(  ...
+            GenderClassifierPlugin.dirStr,  ...
+            GenderClassifierPlugin.labels   ...
+            );
+
+
     end  % properties (Constant)
+
+    properties
+        dirStrToLabelMap = containers.Map('KeyType','char', 'Valuetype', 'char');
+    end
 
 
     methods

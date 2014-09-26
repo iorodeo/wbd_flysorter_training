@@ -234,7 +234,7 @@ classdef FlySorterTrainingImpl < handle
             self.updateStatusBarText('Running Pre-Processing');
             drawnow;
             % need somethine here to make changes take effect ....
-            processTrainingData(self.trainingDataDirs,self.preProcessingFileFullPath);
+            processTrainingData(self.userClassifier, self.trainingDataDirs,self.preProcessingFileFullPath);
             self.updateUi();
         end
 

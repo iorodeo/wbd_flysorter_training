@@ -10,10 +10,18 @@ classdef GenderClassifierPlugin < handle
             'learners',      ...
         };
 
+        labels = {'F','M'};
+        dirStr = {'female', 'male'};
+        dirStrToLabelMap = containers.Map(  ...
+            GenderClassifierPlugin.dirStr,  ...
+            GenderClassifierPlugin.labels   ...
+            );
     end  
 
 
+
     methods
+
 
         function [ok,errMsg] = checkParam(self,param)
             ok = true;

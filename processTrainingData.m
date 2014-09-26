@@ -1,15 +1,11 @@
-function processTrainingData(trainingDataDirs,outputFileName) 
+function processTrainingData(userClassifierPlugin, trainingDataDirs,outputFileName) 
 % processTrainingData 
 %
 % organizes data found int base training data directory. Saves this information in 
 % to output file.
 
-% Note, 
-% ---------------------------------------------------------------------------------------
-% Need to modify to handle other types of classifiers besides gender
-% ---------------------------------------------------------------------------------------
 
-opencvdata = getOpencvData(trainingDataDirs);
+opencvdata = getOpencvData(userClassifierPlugin, trainingDataDirs);
 preProcessingData.opencvdata = opencvdata;
 preProcessingData.traingingDataDirs = trainingDataDirs;
 save(outputFileName,'preProcessingData');
@@ -18,7 +14,7 @@ save(outputFileName,'preProcessingData');
 % Utility functions
 % ---------------------------------------------------------------------------------------
 
-function opencvdata = getOpencvData(trainDataDirs)
+function opencvdata = getOpencvData(userClassifierPlugin, trainDataDirs)
 % getOpencvData:
 %
 % Returns structure of opencv data given the base directory for the training data.
@@ -37,23 +33,31 @@ for dirNum = 1:numel(trainDataDirs)
     datFiles = dir(fullfile(dirName,'*.txt'));
     imgFiles = dir(fullfile(dirName,'*.png'));
 
-    % Get gender information - either from labeleddebugdata.mat file or from file name
+    % Get label information - either from labeleddebugdata.mat file or from file name
     labeledDebugDataFile = fullfile(dirName,'labeleddebugdata.mat');
+
     if exist(labeledDebugDataFile,'file')
-        hasFrameToGenderMap = true;
-        % Load gender from labeled debug data
+        hasFrameToLabelMap = true;
+        % Load label from labeleddebugdata file
         loadStruct = load(labeledDebugDataFile);
         labeledDebugData = loadStruct.labeleddebugdata;
-        frameToGenderMap = createFrameToGenderMap(labeledDebugData);
+        frameToLabelMap = createFrameToLabelMap(labeledDebugData,userClassifierPlugin.labels);
     else
-        % Get gender from directory name
-        hasFrameToGenderMap = false;
-        if strfind(lower(dirName),'female')
-            gender = 'F';
-        elseif strfind(lower(dirName),'male')
-            gender = 'M';
-        else
-            error('gender not found in directory name');
+        % Get label from directory name
+        hasFrameToLabelMap = false;
+
+        found = false;
+        for i = 1:numel(userClassifierPlugin.dirStr)
+            dirStr = userClassifierPlugin.dirStr{i};
+            dirStrLabel = userClassifierPluging.dirStrToLabelMap(dirStr);
+            if strfind(lower(dirName,dirStr))
+                label = dirStrLabel;
+                found = true;
+                break;
+            end
+        end
+        if ~found
+            error('label not found in directory name');
         end
 
     end
@@ -100,15 +104,16 @@ for dirNum = 1:numel(trainDataDirs)
             end
             dataCurr.dirName = dirName;
 
-            % Set gender information
-            if hasFrameToGenderMap
-                if frameToGenderMap.isKey(dataCurr.frame)
-                    dataCurr.sex = frameToGenderMap(dataCurr.frame);
+            % Set label information
+            if hasFrameToLabelMap
+                if frameToLabelMap.isKey(dataCurr.frame)
+                    dataCurr.label = frameToLabelMap(dataCurr.frame);
+                    %fprintf('out %1.0f, %s\n', dataCurr.frame, dataCurr.label);
                 else
-                    error('key %d not found in frameToGenderMap', dataCurr.frame);
+                    error('key %d not found in frameToLabelMap', dataCurr.frame);
                 end
             else
-                dataCurr.sex = gender;
+                dataCurr.label = label;
             end
 
         else
@@ -166,19 +171,25 @@ for dirNum = 1:numel(trainDataDirs)
 end
 
 
-function frameToGenderMap = createFrameToGenderMap(labeledDebugData) 
-% createFrameToGenderMap:
+function frameToLabelMap = createFrameToLabelMap(labeledDebugData, allowedLabels) 
+% createFrameToLabelMap:
 %
-% Returns a containers.Map mapping frame numbers to manual gender assignment.
+% Returns a containers.Map mapping frame numbers to manual label assignments.
 %
-frameToGenderMap = containers.Map(0.1,'a').remove(0.1); 
+frameToLabelMap = containers.Map('KeyType','double','ValueType','char');
 for i = 1:numel(labeledDebugData)
     frameNumber = 1000*labeledDebugData(i).frame + labeledDebugData(i).count + 1;
     label = labeledDebugData(i).manuallabel;
-    if ~isa(label,'char') || ~(strcmp(upper(label),'F') || strcmp(upper(label),'M')) 
+    if ~isa(label,'char') 
         label = 'U';
-    end 
-    frameToGenderMap(frameNumber) = upper(label);
+    else
+        label = upper(label);
+        if ~sum(ismember(allowedLabels,label))
+            label = 'U';
+        end
+    end
+    %fprintf('%1.0f, %s\n', frameNumber, label);
+    frameToLabelMap(frameNumber) = label;
 end
 
 
