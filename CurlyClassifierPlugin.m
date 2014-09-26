@@ -16,21 +16,4 @@ classdef CurlyClassifierPlugin < ClassifierPluginBase
 
     end  
 
-    methods
-
-        
-        function [ok,errMsg] = checkParam(self,param)
-            ok = true;
-            errMsg = '';
-            for i =1:numel(self.paramFieldNames)
-                fieldName = self.paramFieldNames{i};
-                if ~isfield(param, fieldName)
-                    ok = false;
-                    errMsg = sprintf('missing field %s',fieldName);
-                end
-            end
-        end
-
-    end  
-
 end   
