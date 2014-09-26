@@ -1,4 +1,4 @@
-classdef GenderClassifierPlugin < handle
+classdef GenderClassifierPlugin < ClassifierPluginBase
 
     properties (Constant) 
 
@@ -12,12 +12,8 @@ classdef GenderClassifierPlugin < handle
 
         labels = {'F','M'};
         dirStr = {'female', 'male'};
-        dirStrToLabelMap = containers.Map(  ...
-            GenderClassifierPlugin.dirStr,  ...
-            GenderClassifierPlugin.labels   ...
-            );
-    end  
 
+    end  
 
 
     methods
@@ -33,11 +29,6 @@ classdef GenderClassifierPlugin < handle
                     errMsg = sprintf('missing field %s',fieldName);
                 end
             end
-        end
-
-
-        function run(self,param,inputFileName,outputFileName)
-            runGenderTraining(param, inputFileName, outputFileName);
         end
 
     end  

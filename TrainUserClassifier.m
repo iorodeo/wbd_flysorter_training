@@ -1,10 +1,10 @@
-function [params,X,y,imis,fraccorrect] = TrainGenderClassifier(gtposdata,imfiles,sex,params,varargin)
+function [params,X,y,imis,fraccorrect] = TrainUserClassifier(gtposdata,imfiles,label,params,allowedLabels,varargin)
 
 [fromfile,datafiles] = myparse(varargin,'fromfile',false,'datafiles',[]);
 
 %% create training data
 
-idxgood = find([gtposdata.isfly] & ~[gtposdata.ismultipleflies] & ismember(sex,'MF'));
+idxgood = find([gtposdata.isfly] & ~[gtposdata.ismultipleflies] & ismember(label,[allowedLabels{:}]));
 
 n = numel(idxgood);
 
@@ -41,7 +41,7 @@ for ii = 1:n,
 end
 
 y = ones(1,n);
-y(sex(idxgood)=='M') = -1;
+y(sex(idxgood)==allowedLabels{1}) = -1;
 y = repmat(y,[2,1]);
 y = y(:);
 

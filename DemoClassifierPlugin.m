@@ -1,4 +1,4 @@
-classdef DemoClassifierPlugin < handle
+classdef DemoClassifierPlugin < ClassifierPluginBase
 
 % Demo class for user defining user classifier plugings
    
@@ -15,17 +15,8 @@ classdef DemoClassifierPlugin < handle
 
         labels = {'X','Y'};
         dirStr = {'xstring', 'ystring'};
-        dirStrToLabelMap = containers.Map(  ...
-            GenderClassifierPlugin.dirStr,  ...
-            GenderClassifierPlugin.labels   ...
-            );
-
 
     end  % properties (Constant)
-
-    properties
-        dirStrToLabelMap = containers.Map('KeyType','char', 'Valuetype', 'char');
-    end
 
 
     methods
@@ -50,16 +41,16 @@ classdef DemoClassifierPlugin < handle
 
 
         function run(self,param,inputFileName,outputFileName)
-            fprintf('demo classifier plugin: run\n')
-            fprintf('  param\n');
-            paramFieldNames = fieldnames(param);
-            for i = 1:numel(paramFieldNames)
-                fieldName = paramFieldNames{i};
-                fieldValue = param.(fieldName);
-                fprintf('    %s %f\n',fieldName,fieldValue);
-            end
-            fprintf('  inputFileName:  %s\n', inputFileName);
-            fprintf('  outputFileName: %s\n', outputFileName);
+            %fprintf('demo classifier plugin: run\n')
+            %fprintf('  param\n');
+            %paramFieldNames = fieldnames(param);
+            %for i = 1:numel(paramFieldNames)
+            %    fieldName = paramFieldNames{i};
+            %    fieldValue = param.(fieldName);
+            %    fprintf('    %s %f\n',fieldName,fieldValue);
+            %end
+            %fprintf('  inputFileName:  %s\n', inputFileName);
+            %fprintf('  outputFileName: %s\n', outputFileName);
         end
 
 

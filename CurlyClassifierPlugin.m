@@ -1,4 +1,4 @@
-classdef CurlyClassifierPlugin < handle
+classdef CurlyClassifierPlugin < ClassifierPluginBase 
 
     properties (Constant) 
 
@@ -12,17 +12,11 @@ classdef CurlyClassifierPlugin < handle
 
         labels = {'N', 'C'};
         dirStr = {'normal', 'curly'};
-        dirStrToLabelMap = containers.Map( ...
-            CurlyClassifierPlugin.dirStr,  ...
-            CurlyClassifierPlugin.labels   ...
-            );
+
 
     end  
 
     methods
-
-        function self = CurlyClassifierPlugin()
-        end
 
         
         function [ok,errMsg] = checkParam(self,param)
@@ -37,11 +31,6 @@ classdef CurlyClassifierPlugin < handle
             end
         end
 
-
-        function run(self,param,inputFileName,outputFileName)
-        end
-
-
     end  
 
-end  
+end   

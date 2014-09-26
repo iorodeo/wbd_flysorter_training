@@ -29,7 +29,7 @@ opencvdata = preProcessingData.opencvdata;
 
 % Create gtposdata structure --- what does 'gt' refer to ???
 gtposdata = struct;
-sex = [opencvdata.sex];  % This is a bug - sex ends up with a different number of elements then gtposdata
+label = [opencvdata.label];  
 for i = 1:numel(opencvdata),
   gtposdata(i).x = opencvdata(i).x;
   gtposdata(i).y = opencvdata(i).y;
@@ -60,18 +60,11 @@ for i = 1:numel(gtposdata),
 end
 
 
-save(outputFileName,'imfiles','opencvdata','gtposdata','fitparams','sex','doflip');
+save(outputFileName,'imfiles','opencvdata','gtposdata','fitparams','label','doflip');
 
 % look at area thresholds
 fprintf('Set area threshold to < %d\n',min([opencvdata([gtposdata.ismultipleflies]).dd_bodyArea]));
 
-%fileData = load(outputfile);
-%imfiles = fileData.imfiles;
-%opencvdata = fileData.opencvdata;
-%gtposdata = fileData.gtposdata;
-%fitparams = fileData.fitparams;
-%sex = fileData.sex;
-%doflip = fileData.flip;
 
 % cross-validation
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
