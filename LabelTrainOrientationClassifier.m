@@ -159,11 +159,12 @@ while true,
     % Set close reqeust to the uiresume is called on figure close
     set(fighandle,'CloseRequestFcn',@(srv,evnt)uiresume(fighandle))
     uiwait(fighandle);
+    set(fighandle,'CloseRequestFcn', '')
+    set(fighandle, 'visible', 'Off'); % not working???
+    drawnow;
 
-    
     % Get data and actually close figure
     posdatacurr = get(hax,'UserData');
-    set(fighandle,'CloseRequestFcn', '')
     delete(fighandle)
     
   end
