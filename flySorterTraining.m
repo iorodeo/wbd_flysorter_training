@@ -98,7 +98,7 @@ function numberOfCoresPopup_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns numberOfCoresPopup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from numberOfCoresPopup
-handles.impl.setNumberOfPoolCores()
+handles.impl.onNumberOfCoresPopupChange()
 
 
 % --- Executes during object creation, after setting all properties.

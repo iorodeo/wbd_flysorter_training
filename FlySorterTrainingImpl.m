@@ -140,8 +140,8 @@ classdef FlySorterTrainingImpl < handle
 
             self.initUserClassifier();
             self.addJsonLabToMatlabPath()
-            self.initNumberOfCoresPopup()
             self.loadStateFromRcDir();
+            self.initNumberOfCoresPopup()
             self.stateInitialized = true;
             self.updateUi();
         end
@@ -153,20 +153,51 @@ classdef FlySorterTrainingImpl < handle
             end
             self.rmJabbaFromMatlabPath();
             self.rmJsonLabFromMatlabPath();
-        end
-
-
-        function onPoolEnableChange(self)
-            if self.isPoolEnableChecked
-                disp('enable pool')
-            else
-                disp('disable pool');
+            if matlabpool('size') ~= 0
+                matlabpool('close');
             end
         end
 
 
+        function onPoolEnableChange(self)
+            self.setAllUiPanelEnable('off')
+            if self.isPoolEnableChecked
+                self.updateStatusBarText('Enabling matlabpool ...');
+                drawnow;
+                self.setNumberOfPoolCores();
+            else
+                self.updateStatusBarText('Disabling matlabpool ...');
+                drawnow;
+                if matlabpool('size') ~= 0
+                    matlabpool('close');
+                end
+            end
+            self.updateUi();
+        end
+
+
+        function onNumberOfCoresPopupChange(self)
+            self.setAllUiPanelEnable('off')
+            self.updateStatusBarText('Changing number matlabpool cores ...');
+            drawnow;
+            self.setNumberOfPoolCores();
+            self.updateUi();
+        end
+
         function setNumberOfPoolCores(self)
-            disp('setNumberOfPoolCores');
+            numCoresCell = get(self.handles.numberOfCoresPopup, 'String');
+            numCoresValue = get(self.handles.numberOfCoresPopup, 'Value');
+            numCores = str2num(numCoresCell{numCoresValue});
+            numCores = min([numCores,self.machineNumCores]);
+            numCores = max([1,numCores]);
+            self.numMatlabpoolCores = numCores;
+            if self.isPoolEnableChecked
+                currPoolSize = matlabpool('size');
+                if currPoolSize > 0 && currPoolSize ~= self.numMatlabpoolCores 
+                    matlabpool('close');
+                end
+                matlabpool('open', self.numMatlabpoolCores);
+            end
         end
 
 
@@ -817,7 +848,10 @@ classdef FlySorterTrainingImpl < handle
                 numCoresCell{i} = num2str(i);
             end
             set(self.handles.numberOfCoresPopup, 'String', numCoresCell);
-            set(self.handles.numberOfCoresPopup, 'Value', self.machineNumCores);
+            if self.numMatlabpoolCores <= 0 || self.numMatlabpoolCores > self.machineNumCores
+                self.numMatlabpoolCores = self.machineNumCores;
+            end
+            set(self.handles.numberOfCoresPopup, 'Value', self.numMatlabpoolCores);
         end
 
 
