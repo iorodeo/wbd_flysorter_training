@@ -4,6 +4,12 @@ classdef ClassifierPluginBase < handle
         dirStrToLabelMap = containers.Map('KeyType','char','ValueType','char');
     end
 
+
+    properties (Dependent)
+        fileNameBase;
+    end
+
+
     methods
 
         function self = ClassifierPluginBase()
@@ -24,9 +30,16 @@ classdef ClassifierPluginBase < handle
 
         function run(self,param,inputFileName,outputFileName)
             allowedLabels = self.labels;
-            runUserClassifierTraining(param,allowedLabels, orientDataFileName, outputFileName);
+            runUserClassifierTraining(param,allowedLabels,inputFileName,outputFileName);
         end
 
+        function fileNameBase = get.fileNameBase(self)
+            if isprop(self,'name')
+                fileNameBase = sprintf('%scls',self.name);
+            else
+                fileNameBase = 'basecls';
+            end
+        end
     end
 
 end

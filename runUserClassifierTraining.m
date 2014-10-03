@@ -19,14 +19,15 @@ label = orientdata.label;
 opencvdata = orientdata.opencvdata;
 
 %% train gender classifier
-[classifyparams,X,y,imis] = TrainUserClassifier(gtposdata,imfiles,label,classifyparams,allowdLabels,'fromfile',true,'datafiles',opencvdata);
-save(outputFileName, 'classifyparams','gtposdata','opencvdata','label','X','y','imfiles'); 
+[classifyparams,X,y,imis,fraccorrect, yfit] = TrainUserClassifier(gtposdata,imfiles,label,classifyparams,allowedLabels,'fromfile',true,'datafiles',opencvdata);
+labelmap = containers.Map({-1,1}, allowedLabels);
+save(outputFileName, 'classifyparams','gtposdata','opencvdata','label','X','y','imfiles', 'fraccorrect', 'yfit','labelmap'); 
 
 %% cross validation
 res = questdlg('Do you want to perform cross-validation? This will take a while.');
 if strcmpi(res,'yes'),
-    [yfitcv,fraccorrect] = CrossValidationOverMovies(X,y,classifyparams.featurenames,imfiles(imis),classifyparams.nlearn);
-    save('-append',outputFileName,'yfitcv','fraccorrect');
+    [yfitcv,fraccorrectcv] = CrossValidationOverMovies(X,y,classifyparams.featurenames,imfiles(imis),classifyparams.nlearn);
+    save('-append',outputFileName,'yfitcv','fraccorrectcv');
 end
 
 

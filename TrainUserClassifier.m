@@ -1,4 +1,4 @@
-function [params,X,y,imis,fraccorrect] = TrainUserClassifier(gtposdata,imfiles,label,params,allowedLabels,varargin)
+function [params,X,y,imis,fraccorrect,yfit] = TrainUserClassifier(gtposdata,imfiles,label,params,allowedLabels,varargin)
 
 [fromfile,datafiles] = myparse(varargin,'fromfile',false,'datafiles',[]);
 
@@ -41,7 +41,7 @@ for ii = 1:n,
 end
 
 y = ones(1,n);
-y(sex(idxgood)==allowedLabels{1}) = -1;
+y(label(idxgood)==allowedLabels{1}) = -1;
 y = repmat(y,[2,1]);
 y = y(:);
 

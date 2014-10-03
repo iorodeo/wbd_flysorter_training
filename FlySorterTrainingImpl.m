@@ -336,13 +336,16 @@ classdef FlySorterTrainingImpl < handle
 
             inputFile = self.orientationFileFullPath;
             outputFile = self.userClassifierFileFullPath;
-            try
+            % WBD DEVEL
+            % --------------------------------------
+            %try
                 self.userClassifier.run(param,inputFile,outputFile); 
-            catch ME 
-                errorMsg = sprintf('%straining failed:  %s', self.userClassifierTypeTitleStr, ME.message);
-                h = errordlg(errorMsg, 'FlySorter Classifier Training Error', 'modal');
-                uiwait(h);
-            end
+            %catch ME 
+            %    errorMsg = sprintf('%straining failed:  %s', self.userClassifierTypeTitleStr, ME.message);
+            %    h = errordlg(errorMsg, 'FlySorter Classifier Training Error', 'modal');
+            %    uiwait(h);
+            %end
+            % --------------------------------------
             self.updateUi();
         end
 

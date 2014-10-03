@@ -1,4 +1,4 @@
-function processTrainingData(userClassifierPlugin, trainingDataDirs,outputFileName) 
+function processTrainingData(userClassifierPlugin,trainingDataDirs,outputFileName) 
 % processTrainingData 
 %
 % organizes data found int base training data directory. Saves this information in 
@@ -34,7 +34,8 @@ for dirNum = 1:numel(trainDataDirs)
     imgFiles = dir(fullfile(dirName,'*.png'));
 
     % Get label information - either from labeleddebugdata.mat file or from file name
-    labeledDebugDataFile = fullfile(dirName,'labeleddebugdata.mat');
+    labeledDebugDataFile = sprintf('%slabeleddebugdata.mat',userClassifierPlugin.name);
+    labeledDebugDataFile = fullfile(dirName,labeledDebugDataFile);
 
     if exist(labeledDebugDataFile,'file')
         hasFrameToLabelMap = true;
