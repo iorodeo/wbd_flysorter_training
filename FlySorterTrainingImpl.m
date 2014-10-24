@@ -308,6 +308,7 @@ classdef FlySorterTrainingImpl < handle
 
         function runOrientationTraining(self)
             orientationParam = self.loadOrientationParam();
+            orientationParam
             if isempty(orientationParam)
                 return
             end

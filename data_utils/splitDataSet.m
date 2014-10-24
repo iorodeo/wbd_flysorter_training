@@ -1,8 +1,34 @@
-function splitDataSet(directory, labelArray, numSplit, clsName)
+function splitDataSet(labelArray, numSplit, clsName, varargin)
+
+if numel(varargin) > 0
+    srcDir = varargin{1};
+else
+    srcDir = uigetdir(pwd,'Select source directory');
+    if srcDir == 0
+        fprintf('no source directory selected\n');
+        return;
+    end
+end
+
+if numel(varargin) > 1
+    dstDir = varargin{2};
+    if isemtpy(dstDir)
+        distDir = pwd;
+    end
+else
+    dstDir = uigetdir(pwd, 'Select destination directory');
+    if dstDir == 0
+        fprintf('no destination directory selected');
+        return;
+    end
+end
+if ~exist(dstDir)
+    error('destination directory does not exist');
+end
 
 debugDataName = sprintf('%slabeleddebugdata.mat',clsName)
 
-debugDataFile = sprintf('%s%s%s',directory,filesep,debugDataName);
+debugDataFile = sprintf('%s%s%s',srcDir,filesep,debugDataName);
 fileLoad = load(debugDataFile);
 debugDataArray = fileLoad.labeleddebugdata;
 
@@ -11,8 +37,8 @@ permutationMap = getLabelToPermMap(debugDataMap, labelArray);
 
 splitDirNameArray = {};
 for i = 1:numSplit
-    % Create directory name, if directory exists delete contents, if not create
-    splitDirName = sprintf('dataset_%d',i);
+    % Create srcDir name, if srcDir exists delete contents, if not create
+    splitDirName = sprintf('%s%sdataset_%d',dstDir,filesep,i);
     splitDirName
     checkDirectory(splitDirName);
     splitDirNameArray{i} = splitDirName;
@@ -30,7 +56,7 @@ for i = 1:numel(labelArray)
         labelPermutation = permutationMap(label);
         subsetPermutation = getSubsetPermutation(j,numSplit,labelDataArray,labelPermutation);
         subsetDataArray = labelDataArray(subsetPermutation);
-        copyDataFiles(subsetDataArray, directory,splitDirName);
+        copyDataFiles(subsetDataArray, srcDir,splitDirName);
         copyDebugData(debugDataName,subsetDataArray,splitDirName);
     end
 end
@@ -61,7 +87,7 @@ for i = 1:numel(dataArray)
     for j = 1:numel(dirStruct)
         fprintf('copying: %s\n', dirStruct(j).name);
         srcFile = sprintf('%s%s%s',fromDir,filesep,dirStruct(j).name);
-        dstFile = sprintf('%s%s%s,',toDir,filesep,dirStruct(j).name);
+        dstFile = sprintf('%s%s%s',toDir,filesep,dirStruct(j).name);
         fprintf('src: %s\n', srcFile);
         fprintf('dst: %s\n', dstFile);
         copyfile(srcFile,dstFile);

@@ -29,9 +29,14 @@ for dirNum = 1:numel(trainDataDirs)
     
     dirName = trainDataDirs{dirNum};
     fprintf('processing: dirNum = %d, dirName = %s\n',dirNum, dirName);
-    
-    datFiles = dir(fullfile(dirName,'*.txt'));
-    imgFiles = dir(fullfile(dirName,'*.png'));
+
+    %datFiles = dir(fullfile(dirName,'*.txt'));
+    %imgFiles = dir(fullfile(dirName,'*.png'));
+
+    datFileHint = sprintf('%s%s*.txt',dirName,filesep);
+    imgFileHint = sprintf('%s%s*.png',dirName,filesep);
+    datFiles = dir(datFileHint);
+    imgFiles = dir(imgFileHint);
 
     % Get label information - either from labeleddebugdata.mat file or from file name
     labeledDebugDataFile = sprintf('%slabeleddebugdata.mat',userClassifierPlugin.name);
