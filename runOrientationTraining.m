@@ -9,6 +9,8 @@ function runOrientationTraining(param, preProcessingFile,outputFileName)
 % Note, there are some slight differences in names between c++ and 
 % the original matlab version.
 
+[outputPathStr, ~, ~] = fileparts(outputFileName);
+
 % When finding body connected components, we close holes
 fitparams.se_close = strel('disk',param.closeRadius,0);
 
@@ -78,5 +80,6 @@ end
 res = questdlg('Do you want to make an image of all the aligned flies?');
 if strcmpi(res,'yes'),
   alignedflyim = ShowAlignedFliesFile(opencvdata,gtposdata);
-  imwrite(repmat(alignedflyim,[1,1,3]),'aligned_flies.png', 'png');
+  alignedFileName = [outputPathStr,filesep,'aligned_flies.png'];
+  imwrite(repmat(alignedflyim,[1,1,3]),alignedFileName,'png');
 end

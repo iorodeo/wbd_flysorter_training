@@ -1,0 +1,16 @@
+classdef TubbyClassifierPlugin < ClassifierPluginBase 
+
+    properties (Constant) 
+
+        name = 'tubby';
+        paramFieldNames = {  ...
+            'padBorder',     ...
+            'method',        ...
+            'nlearn',        ...
+            'learners',      ...
+        };
+        labels = {'N', 'T'};
+        dirStr = {'normal', 'tubby'};
+    end  
+
+end   

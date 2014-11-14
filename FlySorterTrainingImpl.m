@@ -318,6 +318,10 @@ classdef FlySorterTrainingImpl < handle
             try
                 runOrientationTraining(orientationParam,self.preProcessingFileFullPath,self.orientationFileFullPath);
             catch ME 
+                ME.message
+                for i = 1:numel(ME.stack)
+                    ME.stack(i)
+                end
                 errorMsg = sprintf('Orientaion training failed:  %s', ME.message);
                 h = errordlg(errorMsg, 'FlySorter Orientation Training Error', 'modal');
                 uiwait(h);
