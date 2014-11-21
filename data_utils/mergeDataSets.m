@@ -35,6 +35,7 @@ for i =1:numel(labelCell)
             framePlusCount = frame*1.0e3 + count + 1;
             fileHint = sprintf('data_frame_%d',framePlusCount);
             infoStruct = dir([dataDir, filesep, fileHint, '*']);
+
             if isFly && ~isMultiple && ~isempty(infoStruct)
                 fprintf('    framePlusCount: %d\n', framePlusCount);
                 newFrameNumber = newFrameNumber + 1;
@@ -48,14 +49,26 @@ for i =1:numel(labelCell)
                     copyfile(oldFileName,newFileName);
                 end
                 itemDebugData = debugDataLoad.labeleddebugdata(k);
-                itemDebugData.manuallabel = label;
+                if isempty(label)
+                    itemDebugData.manuallabel = upper(debugDataLoad.labeleddebugdata(k).manuallabel);
+                else
+                    itemDebugData.manuallabel = label;
+                end
+                %fprintf('label = %s\n', itemDebugData.manuallabel);
                 itemDebugData.frame = newFrameNumber;
                 itemDebugData.count = 0;
                 if ~isfield(itemDebugData,'pos_orientationFit')
                     % Add missing field if required
                     itemDebugData.pos_orientationFit = NaN;
                 end
-                labeleddebugdata = [labeleddebugdata,itemDebugData];
+                if ~isfield(itemDebugData, 'im')
+                    itemDebugData.im = NaN;
+                end
+                if isempty(labeleddebugdata)
+                    labeleddebugdata = itemDebugData;
+                else
+                    labeleddebugdata = [labeleddebugdata,itemDebugData];
+                end
             end
         end
     end
@@ -179,6 +192,21 @@ for i = 1:numel(dirArray)
 end
 
 
+function [xx, yy] = rmMissingFields(x,y)
+xx = x
+yy = y
+xNames = fieldnames(x)
+yNames = fieldnames(y)
+for i = 1:numel(xNames)
+    if ~isfield(y,xNames{i})
+        xx = rmfield(xx,xNames{i});
+    end
+end
+for i = 1:numel(yNames)
+    if ~isfield(x,yNames{i})
+        yy = rmfield(yy,yNames{i})
+    end
+end
 
 
 

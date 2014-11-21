@@ -28,6 +28,13 @@ for i = 1:numel(dirArray);
         if exist(debugLogFile)
             fprintf('processing: %s\n',debugLogFile);
             [labeleddebugdata,~] = readDebugData(debugLogFile,debugLogDir);
+
+            %% Temp - for curly case where I had to make debug_data_log
+            %for i=1:numel(labeleddebugdata)
+            %    labeleddebugdata(i).frame = labeleddebugdata(i).frame/(1.0e3);
+            %end
+
+
             matFileName = [debugLogDir,filesep,'labeleddebugdata.mat'];
             fprintf('creating: %s\n',matFileName);
             save(matFileName,'labeleddebugdata');
