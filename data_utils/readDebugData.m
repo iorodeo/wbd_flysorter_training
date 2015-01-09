@@ -5,6 +5,7 @@ debugdata = [];
 processeddebugdata = [];
 isdebugimdir = nargin >= 2;
 
+
 while true,
   
   s = fgetl(fid);
@@ -16,13 +17,16 @@ while true,
   end
   
   m = regexp(s,'^Frame: (\d+), count: (\d+)$','tokens','once');
+
   if isempty(m),
     s = fgetl(fid);
     debugdata = ReadDebugDataHelper(fid,0);
     break;
   end
+
   frame = str2double(m{1});
   count = str2double(m{2});
+
   % skip next line
   s = fgetl(fid);
   tmp = ReadDebugDataHelper(fid,0);

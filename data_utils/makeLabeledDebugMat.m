@@ -27,7 +27,9 @@ for i = 1:numel(dirArray);
         debugLogFile = [debugLogDir, filesep, 'debug_data_log.txt'];
         if exist(debugLogFile)
             fprintf('processing: %s\n',debugLogFile);
-            [labeleddebugdata,~] = readDebugData(debugLogFile,debugLogDir);
+            %[labeleddebugdata,~] = readDebugData(debugLogFile,debugLogDir);
+            [labeleddebugdata,~] = readDebugData(debugLogFile);
+            length(labeleddebugdata)
 
             %% Temp - for curly case where I had to make debug_data_log
             %for i=1:numel(labeleddebugdata)

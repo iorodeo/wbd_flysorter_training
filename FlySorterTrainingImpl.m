@@ -30,7 +30,7 @@ classdef FlySorterTrainingImpl < handle
         orientationFileNameBase    = 'orient';
 
         
-        editTextLengthSub = 14; % Length sub for multi-line textboxes
+        editTextLengthSub = 20; % Length sub for multi-line textboxes
         outFileTextLabel = 'Output File:';
 
         orientationHintTextLabel = 'Hint File:';
