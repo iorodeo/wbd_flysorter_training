@@ -387,13 +387,14 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setUserClassifierThreshold(self)
-            disp('setUserClassifierThreshold');
             outputFile = self.userClassifierFileFullPath;
-            classifierStruct = load(outputFile);
+            classifierStruct = load(self.userClassifierFileFullPath);
             yfitcv = classifierStruct.yfitcv;
             y = classifierStruct.y;
             minconfidence = ChooseConfidenceThreshold(yfitcv,y)
-            
+            classifyparams = classifierStruct.classifyparams;
+            classifyparams.minconfidence = minconfidence;
+            save('-append',self.userClassifierFileFullPath,'classifyparams');
         end
 
         function generateClassifierFiles(self)
