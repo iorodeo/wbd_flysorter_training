@@ -387,14 +387,20 @@ classdef FlySorterTrainingImpl < handle
 
 
         function setUserClassifierThreshold(self)
-            outputFile = self.userClassifierFileFullPath;
+            self.setAllUiPanelEnable('off')
+            statusBarText = sprintf('Running %s Training', self.userClassifierTypeTitleStr);
+            self.updateStatusBarText(statusBarText);
+            drawnow;
+
             classifierStruct = load(self.userClassifierFileFullPath);
             yfitcv = classifierStruct.yfitcv;
             y = classifierStruct.y;
-            minconfidence = ChooseConfidenceThreshold(yfitcv,y)
+            minconfidence = ChooseConfidenceThreshold(yfitcv,y);
             classifyparams = classifierStruct.classifyparams;
             classifyparams.minconfidence = minconfidence;
             save('-append',self.userClassifierFileFullPath,'classifyparams');
+
+            self.updateUi();
         end
 
         function generateClassifierFiles(self)
