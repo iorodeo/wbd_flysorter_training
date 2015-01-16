@@ -22,7 +22,7 @@ function varargout = flySorterTraining(varargin)
 
 % Edit the above text to modify the response to help flySorterTraining
 
-% Last Modified by GUIDE v2.5 26-Jul-2014 17:55:13
+% Last Modified by GUIDE v2.5 16-Jan-2015 08:59:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -415,3 +415,11 @@ function userClassifierParamPushButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.impl.setUserClassifierParamWithGui();
+
+
+% --- Executes on button press in userClassifierSetThreshPushButton.
+function userClassifierSetThreshPushButton_Callback(hObject, eventdata, handles)
+% hObject    handle to userClassifierSetThreshPushButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.impl.setUserClassifierThreshold();

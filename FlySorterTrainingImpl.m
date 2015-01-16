@@ -355,11 +355,6 @@ classdef FlySorterTrainingImpl < handle
         end
 
 
-        function clearUserClassifierTraining(self)
-            disp('clearUserClassifierTraining')
-        end
-
-
         function runUserClassifierTraining(self)
             param = self.loadUserClassifierParam(); 
             if isempty(param)
@@ -385,6 +380,21 @@ classdef FlySorterTrainingImpl < handle
             self.updateUi();
         end
 
+
+        function clearUserClassifierTraining(self)
+            disp('clearUserClassifierTraining')
+        end
+
+
+        function setUserClassifierThreshold(self)
+            disp('setUserClassifierThreshold');
+            outputFile = self.userClassifierFileFullPath;
+            classifierStruct = load(outputFile);
+            yfitcv = classifierStruct.yfitcv;
+            y = classifierStruct.y;
+            minconfidence = ChooseConfidenceThreshold(yfitcv,y)
+            
+        end
 
         function generateClassifierFiles(self)
             disp('generateClassifierFiles');
@@ -583,8 +593,6 @@ classdef FlySorterTrainingImpl < handle
             haveOrientationData = false;
             if exist(self.orientationFileFullPath)
                 haveOrientationData = true;
-            else
-                haveOrientationData = false;
             end
         end
 
@@ -615,6 +623,9 @@ classdef FlySorterTrainingImpl < handle
 
         function haveUserClassifierData = get.haveUserClassifierData(self)
             haveUserClassifierData = false;
+            if exist(self.userClassifierFileFullPath)
+                haveUserClassifierData = true;
+            end
         end
 
 
@@ -728,6 +739,11 @@ classdef FlySorterTrainingImpl < handle
             %  - User Classifier subpanel
             enableTest = enableTest & self.haveOrientationData;
             self.enableUiPanelOnTest(self.handles.userClassifierPanel, enableTest);
+            if enableTest && self.haveUserClassifierData
+                set(self.handles.userClassifierSetThreshPushButton, 'Enable', 'on');
+            else
+                set(self.handles.userClassifierSetThreshPushButton, 'Enable', 'off');
+            end
 
             %  - Generate Flysorter Files subpanel
             self.enableUiPanelOnTest(self.handles.generateFlySorterFilesPanel, false);
